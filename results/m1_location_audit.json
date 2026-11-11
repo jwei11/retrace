@@ -1,0 +1,160 @@
+{
+  "shared_coordinates": {
+    "distinct": 0,
+    "photos": 0
+  },
+  "all_metadata_sample": {
+    "n": 300000,
+    "flag_invalid": {
+      "count": 0,
+      "frac": 0.0
+    },
+    "flag_shared_coord": {
+      "count": 0,
+      "frac": 0.0
+    },
+    "flag_at_sea": {
+      "count": 316,
+      "frac": 0.00105
+    },
+    "flag_country_mismatch": {
+      "count": 3582,
+      "frac": 0.01194
+    },
+    "flag_far_mismatch": {
+      "count": 680,
+      "frac": 0.00227
+    },
+    "at_sea_km_quantiles": {
+      "0.5": 3.9,
+      "0.9": 10.8,
+      "1.0": 72.0
+    },
+    "far_mismatch_top_pairs": {
+      "RE->FR": 182,
+      "GP->FR": 80,
+      "MQ->FR": 57,
+      "GF->FR": 43,
+      "YT->FR": 40,
+      "CY->-99": 39,
+      "MW->MZ": 27,
+      "SG->ID": 24,
+      "YE->OM": 23,
+      "TH->LA": 21
+    }
+  },
+  "subset": {
+    "train": {
+      "n": 20000,
+      "flag_invalid": {
+        "count": 0,
+        "frac": 0.0
+      },
+      "flag_shared_coord": {
+        "count": 0,
+        "frac": 0.0
+      },
+      "flag_at_sea": {
+        "count": 16,
+        "frac": 0.0008
+      },
+      "flag_country_mismatch": {
+        "count": 230,
+        "frac": 0.0115
+      },
+      "flag_far_mismatch": {
+        "count": 50,
+        "frac": 0.0025
+      },
+      "at_sea_km_quantiles": {
+        "0.5": 3.5,
+        "0.9": 6.8,
+        "1.0": 20.9
+      },
+      "far_mismatch_top_pairs": {
+        "RE->FR": 18,
+        "GP->FR": 8,
+        "GF->FR": 8,
+        "YT->FR": 4,
+        "CY->-99": 2,
+        "MW->MZ": 2,
+        "IR->TM": 2,
+        "TH->LA": 2,
+        "SG->ID": 2,
+        "MQ->FR": 1
+      }
+    },
+    "val": {
+      "n": 2000,
+      "flag_invalid": {
+        "count": 0,
+        "frac": 0.0
+      },
+      "flag_shared_coord": {
+        "count": 0,
+        "frac": 0.0
+      },
+      "flag_at_sea": {
+        "count": 1,
+        "frac": 0.0005
+      },
+      "flag_country_mismatch": {
+        "count": 17,
+        "frac": 0.0085
+      },
+      "flag_far_mismatch": {
+        "count": 5,
+        "frac": 0.0025
+      },
+      "at_sea_km_quantiles": {
+        "0.5": 3.8,
+        "0.9": 3.8,
+        "1.0": 3.8
+      },
+      "far_mismatch_top_pairs": {
+        "RE->FR": 3,
+        "MX->US": 2
+      }
+    },
+    "test": {
+      "n": 2000,
+      "flag_invalid": {
+        "count": 0,
+        "frac": 0.0
+      },
+      "flag_shared_coord": {
+        "count": 0,
+        "frac": 0.0
+      },
+      "flag_at_sea": {
+        "count": 2,
+        "frac": 0.001
+      },
+      "flag_country_mismatch": {
+        "count": 51,
+        "frac": 0.0255
+      },
+      "flag_far_mismatch": {
+        "count": 16,
+        "frac": 0.008
+      },
+      "at_sea_km_quantiles": {
+        "0.5": 4.1,
+        "0.9": 4.4,
+        "1.0": 4.5
+      },
+      "far_mismatch_top_pairs": {
+        "GP->FR": 5,
+        "CO->EC": 2,
+        "ZM->CD": 2,
+        "GR->TR": 1,
+        "MW->MZ": 1,
+        "IR->TM": 1,
+        "NO->SE": 1,
+        "SG->ID": 1,
+        "YE->OM": 1,
+        "YT->FR": 1
+      }
+    }
+  }
+}

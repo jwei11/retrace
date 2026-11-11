@@ -1,0 +1,133 @@
+{
+  "n_photos": 5104806,
+  "A_calendar": {
+    "spike_days": [
+      {
+        "date": "2011-05-30",
+        "photos": 416,
+        "x_neighbourhood_median": 83.2,
+        "uploaders": 2
+      },
+      {
+        "date": "2013-02-08",
+        "photos": 580,
+        "x_neighbourhood_median": 82.9,
+        "uploaders": 3
+      },
+      {
+        "date": "2013-02-07",
+        "photos": 952,
+        "x_neighbourhood_median": 79.3,
+        "uploaders": 1
+      },
+      {
+        "date": "2011-05-14",
+        "photos": 254,
+        "x_neighbourhood_median": 42.3,
+        "uploaders": 2
+      },
+      {
+        "date": "2013-02-06",
+        "photos": 499,
+        "x_neighbourhood_median": 41.6,
+        "uploaders": 2
+      },
+      {
+        "date": "2013-02-04",
+        "photos": 852,
+        "x_neighbourhood_median": 38.7,
+        "uploaders": 1
+      },
+      {
+        "date": "2013-03-26",
+        "photos": 229,
+        "x_neighbourhood_median": 38.2,
+        "uploaders": 2
+      },
+      {
+        "date": "2013-02-09",
+        "photos": 230,
+        "x_neighbourhood_median": 32.9,
+        "uploaders": 3
+      },
+      {
+        "date": "2013-09-06",
+        "photos": 379,
+        "x_neighbourhood_median": 25.3,
+        "uploaders": 4
+      },
+      {
+        "date": "2013-07-06",
+        "photos": 397,
+        "x_neighbourhood_median": 24.8,
+        "uploaders": 4
+      },
+      {
+        "date": "2013-08-18",
+        "photos": 429,
+        "x_neighbourhood_median": 21.4,
+        "uploaders": 5
+      }
+    ],
+    "photos_on_spike_days": 5217,
+    "exact_midnight_frac": 2.2e-05,
+    "expected_midnight_frac_if_random": 1.2e-08,
+    "year_2011": {
+      "photos": 6545,
+      "uploaders": 100,
+      "top_uploader_share": 0.467,
+      "distinct_days": 319,
+      "top_days": {
+        "2011-05-30": 416,
+        "2011-05-14": 254,
+        "2011-11-18": 188,
+        "2011-11-15": 185,
+        "2011-12-01": 158
+      }
+    }
+  },
+  "B_sequence_span": {
+    "multi_photo_sequences": 797715,
+    "span_quantiles_hours": {
+      "0.5": 0.04,
+      "0.9": 0.18,
+      "0.99": 0.59,
+      "0.999": 2.08
+    },
+    "sequences_over_1_day_frac": 0.0001,
+    "photos_in_such_sequences": 508
+  },
+  "C_motion": {
+    "consecutive_pairs": 3632431,
+    "impossible_steps": 2304,
+    "impossible_step_frac": 0.00063,
+    "photos_flagged": 4121
+  },
+  "overall_flagged_frac": 0.0019,
+  "subset_impact": {
+    "train": {
+      "n": 20000,
+      "time_reliable": 13968,
+      "flag_spike_day_among_reliable": 0,
+      "flag_long_sequence_among_reliable": 0,
+      "flag_impossible_motion_among_reliable": 21,
+      "any_flag_among_reliable_frac": 0.0015
+    },
+    "val": {
+      "n": 2000,
+      "time_reliable": 1369,
+      "flag_spike_day_among_reliable": 0,
+      "flag_long_sequence_among_reliable": 0,
+      "flag_impossible_motion_among_reliable": 4,
+      "any_flag_among_reliable_frac": 0.0029
+    },
+    "test": {
+      "n": 2000,
+      "time_reliable": 1267,
+      "flag_spike_day_among_reliable": 0,
+      "flag_long_sequence_among_reliable": 0,
+      "flag_impossible_motion_among_reliable": 0,
+      "any_flag_among_reliable_frac": 0.0
+    }
+  }
+}

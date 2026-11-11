@@ -1,0 +1,49 @@
+{
+  "cutoffs_from_train": {
+    "brightness": 73.95,
+    "sky_brightness": 75.9,
+    "n_day_photos": 12948,
+    "percentile": 0.02
+  },
+  "splits": {
+    "train": {
+      "n": 20000,
+      "status_counts": {
+        "ok_day": 13968,
+        "creator_unreliable": 5741,
+        "dropped_night": 263,
+        "rescued_night": 28
+      },
+      "time_reliable": 13996,
+      "night_labeled": 2327,
+      "dark_night_labeled": 73,
+      "dark_night_blocked_by_uploader_rule": 45
+    },
+    "val": {
+      "n": 2000,
+      "status_counts": {
+        "ok_day": 1369,
+        "creator_unreliable": 604,
+        "dropped_night": 26,
+        "rescued_night": 1
+      },
+      "time_reliable": 1370,
+      "night_labeled": 249,
+      "dark_night_labeled": 13,
+      "dark_night_blocked_by_uploader_rule": 12
+    },
+    "test": {
+      "n": 2000,
+      "status_counts": {
+        "ok_day": 1267,
+        "creator_unreliable": 710,
+        "dropped_night": 22,
+        "rescued_night": 1
+      },
+      "time_reliable": 1268,
+      "night_labeled": 310,
+      "dark_night_labeled": 3,
+      "dark_night_blocked_by_uploader_rule": 2
+    }
+  }
+}

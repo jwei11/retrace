@@ -23,6 +23,7 @@ dependencies = [
     "huggingface-hub>=0.30",
     "datasets>=3.0",
     "requests>=2.34.2",
+    "shapely>=2.0",
 ]
 
 [dependency-groups]

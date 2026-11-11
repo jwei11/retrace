@@ -1,13 +1,13 @@
 # Progress
 
-Last updated: 2026-11-10
+Last updated: 2026-11-11
 
 ## Phase A status
 
 | Milestone | Status | Notes |
 |---|---|---|
 | M0 Environment | Done | WSL2 Ubuntu (vhdx on F:), torch 2.14.1+cu126, sm_75 OK. See VRAM table below. |
-| M1 Data: OSV-5M | Labels done; images in progress | 20k train / 2k val / 2k test sampled. Val images sanitized; test/train fetching (HF rate limits). |
+| M1 Data: OSV-5M | Done | 20k train / 2k val / 2k test; all 24k images sanitized; final time rule applied (D-016); junk flagged (D-017). |
 | M1 Data: Im2GPS3k, YFCC4k | Downloaded + extracted | Manifests, sanitization and timestamp audit not started. |
 | M1 Data: private set | n/a | No private photos yet. |
 | M2 Sanitization + leakage | Code + tests done | Corpus audit passes on val. LEAKAGE.md drafted. |
@@ -39,6 +39,38 @@ is expected to be much faster; not measured yet.
   brightness is flat across labeled sun angles because street-view photos are almost never
   taken at dusk/night, so night-labeled photos are mislabeled daytime photos. Led to D-013.
 
+- **Date/year sanity** (`scripts/audit_dates.py`, `results/m1_date_audit.json`): no default-clock
+  dates (no many-uploader spikes on one day), sequences are internally consistent (median span
+  2.4 min, 99.9% < 2 h, 0.01% > 1 day), impossible jumps in 0.06% of consecutive pairs. Subset:
+  0-0.3% of time-labeled photos flagged. Limitation: a clock that is consistently wrong (e.g. wrong
+  year) passes every metadata check.
+- **Location sanity** (`scripts/audit_locations.py`, `results/m1_location_audit.json`): no invalid,
+  (0,0) or placeholder coordinates; ~0.1% "at sea", typically 3-4 km offshore (ferries, bridges,
+  small islands); 1.2% country mismatch, mostly near borders. "Far" mismatches (0.25%) are mainly
+  a coding convention: OSV-5M codes Reunion/Guadeloupe/Martinique/French Guiana separately, Natural
+  Earth files them under France. Likely real errors < 0.1%.
+- **Junk images** (`scripts/audit_junk_images.py`, `results/m1_junk_audit.json`,
+  `data/audits/junk_images.html`): all 24k. No pitch-black frames (0.1th percentile brightness 52/255).
+  First look: the darkest and blurriest photos are mostly underexposed or soft but still locatable;
+  the lowest-contrast list holds the real junk (fogged frame, near-blank frame, camera aimed at
+  the road surface) plus a cluster of dark Indian dashcam night frames in val with a burned-in
+  text strip (LEAKAGE L-15). **User reviewed 98 cards** (65 yes / 20 maybe / 13 no;
+  `results/m1_junk_review.json`). **Decision (D-017):** flag contrast < 15 plus the user's "no"
+  photos as `junk` (14 train / 6 val / 0 test; `results/m1_junk_flags.json`). Scoring and training
+  skip junk rows; `scripts/score_run.py` must apply this filter when written. Side finding: ~4% of night-labeled photos (about 20 of 559 in
+  val+test) are genuinely dark, i.e. real night photos with correct labels that D-013 drops.
+
+- **Night rescue** (D-016, `scripts/finalize_time_labels.py`, `results/m1_night_rescue.json`,
+  `data/audits/night_rescue.html`): cutoffs from 12,948 day-labeled train photos (brightness < 74,
+  sky < 76). Rescued 28 train / 1 val / 1 test; spot-check looks like real night (headlights,
+  streetlights). **But the uploader rule blocks more real night photos than we rescue**: 45 train /
+  12 val / 2 test dark night-labeled photos belong to uploaders failing the 90% daylight rule.
+  Likely cause: uploaders who genuinely drive at night fail a "should be daylight" test, so D-012
+  can't tell "wrong clock" from "shoots at night". One blocked photo has a burned-in dashcam
+  timestamp (LEAKAGE L-15 observed in our data).
+  **Decision (D-016a):** leave the blocked photos dropped. A dark photo with a night label proves
+  "night", not the hour, and even a full override would give only 13 val night photos.
+
 ## Open questions (for the user)
 
 1. Hour-of-day metric: wall-clock time, solar time, or both? (Recommendation: both, solar primary.)
@@ -58,6 +90,12 @@ is expected to be much faster; not measured yet.
   sky glow, stars, moon). A future data iteration should add a source with verified night
   timestamps, e.g. photos with GPS time (not camera clock) or a curated night subset, and
   report night/twilight as its own eval slice.
+  A cheap first step inside OSV-5M is done (D-016 night rescue: 30 photos kept).
+  **Replace the uploader daylight rule with a pixel-agreement clock check** when night data
+  arrives: judge each uploader by whether image brightness agrees with the labeled sun angle
+  (dark<->night, bright<->day) rather than assuming daylight. The current rule (D-012) punishes
+  genuine night shooters (59 dark night photos blocked in our subset, D-016a), and it would
+  reject most of a real night dataset outright.
 - Measure hour-level label accuracy with a manual shadow-direction audit (~40 photos), since the
   automated brightness check can't do it on this data.
 - Creator-disjoint eval view: 98% of official OSV-5M test images share an uploader with train;

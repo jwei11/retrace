@@ -55,10 +55,11 @@ def add_time_labels(df: pd.DataFrame, quality: pd.DataFrame) -> pd.DataFrame:
     ]
     el, _ = solar_position(out.lat.to_numpy(), out.lon.to_numpy(), out.captured_at.to_numpy() / 1000)
     out["sun_elev_label"] = np.round(el, 2)  # label-side QA only
-    creator_ok = out.creator_id.map(quality.time_reliable).fillna(False).astype(bool)
-    # Per-photo rule (D-013): a label putting the sun below civil twilight is almost always a
-    # daytime photo with a wrong clock (results/m1_time_label_brightness.json), so drop it.
-    out["time_reliable"] = creator_ok & (out.sun_elev_label >= DAYLIGHT_ELEV_DEG)
+    out["creator_time_ok"] = out.creator_id.map(quality.time_reliable).fillna(False).astype(bool)
+    # Provisional per-photo rule (D-013): a night label is almost always a daytime photo with a
+    # wrong clock. The final rule, with the night rescue (D-016), needs image brightness and is
+    # applied after sanitization by scripts/finalize_time_labels.py.
+    out["time_reliable"] = out.creator_time_ok & (out.sun_elev_label >= DAYLIGHT_ELEV_DEG)
     return out
 
 
@@ -66,5 +67,6 @@ MANIFEST_COLS = [
     "id", "sanitized_path", "lat", "lon", "utc_time", "local_time", "tz", "group_id",
     "source", "split",
     # Extra label-side columns (never agent-visible): stratification + QA.
-    "source_id", "country", "region", "city", "creator_id", "time_reliable", "sun_elev_label",
+    "source_id", "country", "region", "city", "creator_id", "creator_time_ok", "time_reliable",
+    "sun_elev_label",
 ]

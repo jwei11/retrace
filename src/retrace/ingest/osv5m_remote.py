@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import random
 import struct
+import threading
 import time
 import zipfile
 import zlib
@@ -53,11 +54,41 @@ def build_index(split: str, out: Path) -> pd.DataFrame:
     return df
 
 
-def _fetch_one(session: requests.Session, row) -> bytes:
+class ShardURLs:
+    """Resolve each shard's `resolve/` URL to its signed CDN URL once, and reuse it.
+
+    HF limits anonymous `resolve` calls (3,000 per 5 min); the CDN behind it serves byte ranges
+    without that limit. Signed URLs expire (~1 h), so entries are refreshed after MAX_AGE_S or
+    when the CDN rejects them (D-010).
+    """
+    MAX_AGE_S = 40 * 60
+
+    def __init__(self, session: requests.Session):
+        self.session, self.lock, self.cache = session, threading.Lock(), {}
+
+    def get(self, shard: str, refresh: bool = False) -> str:
+        with self.lock:
+            hit = self.cache.get(shard)
+            if hit and not refresh and time.time() - hit[1] < self.MAX_AGE_S:
+                return hit[0]
+            r = self.session.head(RESOLVE + shard, allow_redirects=False, timeout=60)
+            if r.status_code == 429:
+                r.raise_for_status()
+            url = r.headers.get("Location") or RESOLVE + shard
+            self.cache[shard] = (url, time.time())
+            return url
+
+
+def _fetch_one(session: requests.Session, urls: ShardURLs, row) -> bytes:
     start = int(row.offset)
     end = start + LOCAL_HEADER.size + int(row.name_len) + EXTRA_SLACK + int(row.csize)
-    r = session.get(RESOLVE + row.shard, headers={"Range": f"bytes={start}-{end}"}, timeout=60)
+    rng = {"Range": f"bytes={start}-{end}"}
+    r = session.get(urls.get(row.shard), headers=rng, timeout=60)
+    if r.status_code in (401, 403):  # signed URL expired
+        r = session.get(urls.get(row.shard, refresh=True), headers=rng, timeout=60)
     r.raise_for_status()
+    if r.status_code != 206:
+        raise ValueError(f"server ignored the Range header for {row.id}")
     buf = r.content
     sig, *_rest, n_len, e_len = LOCAL_HEADER.unpack_from(buf)
     if sig != b"PK\x03\x04":
@@ -80,11 +111,12 @@ def fetch(rows: Iterable, workers: int = 12, retries: int = 8) -> Iterator[tuple
     session = requests.Session()
     adapter = requests.adapters.HTTPAdapter(pool_connections=workers, pool_maxsize=workers)
     session.mount("https://", adapter)
+    urls = ShardURLs(session)
 
     def task(row):
         for attempt in range(retries):
             try:
-                return row.id, _fetch_one(session, row)
+                return row.id, _fetch_one(session, urls, row)
             except requests.HTTPError as e:
                 wait = 2 ** attempt + random.random()
                 if e.response is not None and e.response.status_code == 429:
