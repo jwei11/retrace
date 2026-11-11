@@ -21,10 +21,17 @@ it is emulated (no bf16 tensor cores), so it would be slow. SDPA attention, no F
 **D-004 Drop Gemma 4's audio tower at load.** It has no SDPA support in transformers and we never
 use audio; dropping it avoids the error and saves VRAM. *Alternative:* per-submodule eager attention.
 
-**D-005 Local inference runtime.** Status: open. Plain transformers runs at 7-15 tok/s, so a
-~1,200-token episode takes ~2 min. Candidates: vLLM, llama.cpp (prebuilt Windows CUDA binaries,
-no compiler needed). Gemma 4 E2B in nf4 uses 6.3 GB because its per-layer embeddings are not
-quantized; moving them to CPU is a known option.
+**D-005 Local inference runtime: vLLM** (chosen by the user, 2026-11-11). vLLM 0.33.0 serves the
+VLM over an OpenAI-compatible API on 127.0.0.1:8000 (`scripts/serve_vllm.sh`); the harness talks
+HTTP. It lives in its own venv (`~/.venvs/vllm`, torch 2.14.0+cu130) because it pins its own torch.
+On Turing it uses the TRITON_ATTN backend (no FlashAttention), fp16. Needs a C compiler for
+Triton (`build-essential`, installed as root via `wsl -u root`). Settings that fit 8 GB next to
+Windows' VRAM use: `--gpu-memory-utilization 0.85 --max-model-len 6144` (KV cache ~7k tokens).
+*Evidence* (`results/m0_vlm_smoke.jsonl`, Qwen3-VL-2B fp16, 384 px, 200 tokens): 97 tok/s alone vs
+14.7 with transformers (6.6x); 487 tok/s total with 8 concurrent requests (33x).
+*Why vLLM also suits later work:* it serves LoRA adapters and batches many sampled answers, which
+fine-tuning evaluation and RL rollouts need. *Alternatives:* plain transformers (works, too slow
+for evaluation); llama.cpp (no compiler needed, newer VLM support). Gemma 4 E2B on vLLM not tested.
 
 **D-006 shapely for geometry.** Added for point-in-polygon checks against Natural Earth borders
 (location audit); it will also serve the gazetteer and region tools. Standard, wheel-installable.

@@ -1,0 +1,98 @@
+{
+  "run": {
+    "run_id": "knn1_val",
+    "dataset": "osv5m",
+    "split": "val",
+    "model": "baseline:siglip-knn1",
+    "config": {
+      "embedder": "google/siglip2-so400m-patch14-384",
+      "index": "train, non-junk",
+      "k": 1,
+      "vote_km": 25.0
+    },
+    "notes": "nearest train neighbor's label"
+  },
+  "micro": {
+    "n": 1994,
+    "valid_frac": 1.0,
+    "median_km": 288.97854940305757,
+    "acc@1": 0.0,
+    "acc@25": 0.15295887662988966,
+    "acc@200": 0.4202607823470411,
+    "acc@750": 0.765295887662989,
+    "acc@2500": 0.9348044132397192,
+    "geo_shaped": 0.7431044114661614,
+    "geo_nll": 31.444450043043894,
+    "in_radius": 0.6359077231695085,
+    "n_time": 1369,
+    "year_exact": 0.4156318480642805,
+    "median_year_err": 1.0,
+    "median_doy_err_d": 36.2894102545346,
+    "doy_within_7d": 0.20598977355734113,
+    "doy_within_30d": 0.44777209642074506,
+    "secondary_median_hour_err_h": 2.5961111111111084
+  },
+  "macro_by_stratum": {
+    "median_km": 1451.9431075009124,
+    "geo_shaped": 0.6273012877813934,
+    "acc@1": 0.0,
+    "acc@25": 0.16455701809435735,
+    "acc@200": 0.3514125130305607,
+    "acc@750": 0.6233875787522158,
+    "acc@2500": 0.7982165698004252,
+    "n_strata": 108
+  },
+  "calibrated_coverage_target": 0.3934693402873666,
+  "answer_rate": 1.0,
+  "n_errors": 0,
+  "uploader": {
+    "seen": {
+      "n": 1729,
+      "valid_frac": 1.0,
+      "median_km": 261.10264514028404,
+      "acc@1": 0.0,
+      "acc@25": 0.16888374783111626,
+      "acc@200": 0.44129554655870445,
+      "acc@750": 0.7721226142278774,
+      "acc@2500": 0.9421631000578369,
+      "geo_shaped": 0.7535817342290051,
+      "geo_nll": 29.491694852393714,
+      "in_radius": 0.6460381723539619,
+      "n_time": 1168,
+      "year_exact": 0.461472602739726,
+      "median_year_err": 1.0,
+      "median_doy_err_d": 34.0132231448881,
+      "doy_within_7d": 0.2208904109589041,
+      "doy_within_30d": 0.4708904109589041,
+      "secondary_median_hour_err_h": 2.68388888888889
+    },
+    "new": {
+      "n": 265,
+      "valid_frac": 1.0,
+      "median_km": 408.44900401592577,
+      "acc@1": 0.0,
+      "acc@25": 0.04905660377358491,
+      "acc@200": 0.2830188679245283,
+      "acc@750": 0.720754716981132,
+      "acc@2500": 0.8867924528301887,
+      "geo_shaped": 0.6747448225719835,
+      "geo_nll": 44.18525655109734,
+      "in_radius": 0.569811320754717,
+      "n_time": 201,
+      "year_exact": 0.14925373134328357,
+      "median_year_err": 2.0,
+      "median_doy_err_d": 51.94583961510915,
+      "doy_within_7d": 0.11940298507462686,
+      "doy_within_30d": 0.31343283582089554,
+      "secondary_median_hour_err_h": 2.3897222222222254
+    },
+    "seen_frac": 0.8671013039117352
+  },
+  "cost": {
+    "mean_tokens_in": 0.0,
+    "mean_tokens_out": 0.0,
+    "total_tokens": 0,
+    "mean_latency_s": null,
+    "p95_latency_s": null
+  }
+}

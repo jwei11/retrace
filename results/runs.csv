@@ -1,3 +1,6 @@
 run_id,scored_at,dataset,split,model,n,answer_rate,median_km,acc@1,acc@25,acc@200,acc@750,acc@2500,geo_shaped,macro_geo_shaped,in_radius,n_time,year_exact,doy_within_30d,new_uploader_geo_shaped,mean_tokens,mean_latency_s
 random_train_val,2026-11-11 10:47,osv5m,val,baseline:random_train,1994,1.0,7822.3,0.0,0.0,0.008,0.0677,0.2217,0.1197,0.0829,0.3129,1369,0.149,0.1651,0.1349,0,0.0
 constant_val,2026-11-11 10:47,osv5m,val,baseline:constant,1994,1.0,5748.2,0.0,0.0,0.009,0.1595,0.4097,0.2287,0.1892,0.5181,1369,0.2352,0.1665,0.2984,0,0.0
+vlm_direct_qwen3-vl-2b-instruct_val,2026-11-11 11:36,osv5m,val,Qwen/Qwen3-VL-2B-Instruct,1994,0.9995,404.3,0.0075,0.0647,0.2638,0.7066,0.8982,0.6746,0.5424,0.0411,1368,0.0453,0.4079,0.6967,736,4.985135975915705
+knn1_val,2026-11-11 11:51,osv5m,val,baseline:siglip-knn1,1994,1.0,289.0,0.0,0.153,0.4203,0.7653,0.9348,0.7431,0.6273,0.6359,1369,0.4156,0.4478,0.6747,0,
+knn10_val,2026-11-11 11:51,osv5m,val,baseline:siglip-knn10,1994,1.0,295.1,0.0,0.1775,0.4213,0.7623,0.9438,0.7451,0.6349,0.6018,1369,0.4193,0.4507,0.6826,0,

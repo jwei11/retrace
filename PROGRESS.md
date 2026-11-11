@@ -14,7 +14,7 @@ Last updated: 2026-11-11
 | M3 Splits | Done for OSV-5M | Stratified (country-macro) view implemented in scoring. Label-concentration report not written yet. |
 | M4 Scoring | Done | `scripts/score_run.py` (D-044): worst score for missing answers, junk excluded, seen/new uploader view, `--vs` paired bootstrap. 14 unit tests. |
 | M5 Harness | Not started | |
-| M6 Baselines | Started | Trivial floors on val (`scripts/baseline_trivial.py`): constant geo_shaped 0.229, random-train 0.120. Model baselines not started. |
+| M6 Baselines | Pre-harness part done | `results/baselines.md`: SigLIP kNN 0.745 geo_shaped, Qwen3-VL-2B alone 0.675, constant 0.229. Spec #3-#5 need the M5 harness. |
 
 ## M0 measurements (RTX 2070 Super, 8 GB, one 384 px image, 200 new tokens, greedy)
 
@@ -24,8 +24,9 @@ Last updated: 2026-11-11
 | Qwen3-VL-2B-Instruct | fp16 | 4.01 GB | 14.7 | faster than 4-bit on Turing |
 | Gemma 4 E2B-it | bnb nf4, fp16 compute | 6.27 GB | 7.0 | audio tower dropped; per-layer embeddings stay fp16 |
 
-All via plain transformers `generate`, the slowest option. A serving engine (vLLM / llama.cpp)
-is expected to be much faster; not measured yet.
+| Qwen3-VL-2B-Instruct | fp16, **vLLM 0.33** (D-005) | 85% of card reserved | **97.2** | 487 tok/s total at 8 concurrent |
+
+Rows 1-3 via plain transformers `generate`. vLLM chosen as the runtime (D-005).
 
 ## Audits done
 
@@ -74,12 +75,22 @@ is expected to be much faster; not measured yet.
 ## Open questions (for the user)
 
 1. Hour-of-day metric: wall-clock time, solar time, or both? (Recommendation: both, solar primary.)
-2. Local runtime for M5/M6: try vLLM or llama.cpp before deciding on Gemma vs Qwen.
+2. ~~Local runtime~~: vLLM (D-005). Gemma 4 E2B on vLLM still untested.
 3. Rent a GPU (e.g. RunPod) for full-val baselines and training? Private set stays local regardless.
 4. Crop policy: fixed 768x512 crop loses much of portrait photos. Accept, or pad?
 5. Flickr timestamps: Im2GPS3k has none in its labels (originals may have EXIF); YFCC4k `DateTaken`
    is camera-local and often junk. Audit before scoring time on either.
 6. Hugging Face token would remove the rate-limit slowdown on image downloads.
+
+## Direction (from the user, 2026-11-11)
+
+1. Baselines and measurement first (M5 harness, M6 baselines): the "before" numbers.
+2. Build the harness out: memory, retrieval (RAG), context management, tools, skills, safeguards.
+   Each layer ships with an ablation via `scripts/score_run.py --vs` (hard rule 7).
+3. Then fine-tune the agent (the user's main interest). This replaces the spec's original "no model
+   training in either phase" rule; candidates: supervised fine-tuning (photo -> answer), fine-tuning
+   on successful tool-use trajectories, RL with `geo_shaped` as reward. QLoRA on the 2070 Super for
+   a first small run; larger runs likely on a rented GPU. Private photos stay out of all training.
 
 ## Future iterations
 
