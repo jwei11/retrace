@@ -12,9 +12,9 @@ Last updated: 2026-11-11
 | M1 Data: private set | n/a | No private photos yet. |
 | M2 Sanitization + leakage | Code + tests done | Corpus audit passes on val. LEAKAGE.md drafted. |
 | M3 Splits | Done for OSV-5M | Stratified (country-macro) view implemented in scoring. Label-concentration report not written yet. |
-| M4 Scoring | Done | 10 unit tests. Run-level script (`scripts/score_run.py`) not written yet. |
+| M4 Scoring | Done | `scripts/score_run.py` (D-044): worst score for missing answers, junk excluded, seen/new uploader view, `--vs` paired bootstrap. 14 unit tests. |
 | M5 Harness | Not started | |
-| M6 Baselines | Not started | |
+| M6 Baselines | Started | Trivial floors on val (`scripts/baseline_trivial.py`): constant geo_shaped 0.229, random-train 0.120. Model baselines not started. |
 
 ## M0 measurements (RTX 2070 Super, 8 GB, one 384 px image, 200 new tokens, greedy)
 

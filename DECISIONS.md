@@ -156,3 +156,17 @@ Coverage (truth inside radius) is reported against the calibrated target 39.3%.
 rather than mixing in location error. Clock time vs solar time: status open (PROGRESS.md Q1).
 
 **D-043 Stratified view = country-macro average**, so "always guess the US" can't look good.
+
+**D-044 Run scoring rules** (decided by the user, 2026-11-11; `src/retrace/score/run.py`,
+`scripts/score_run.py`).
+- A photo with no answer (crash, timeout, unparseable) gets the worst score (antipode), so
+  skipping hard photos can't raise a score; answer rate is reported alongside.
+  *Alternative:* score answered photos only (rejected: rewards flaky agents).
+- Junk photos (D-017) are excluded; answers for them are ignored. Answers for ids outside the
+  split are an error.
+- Views: micro, country-macro, and uploader seen-in-train vs new (L-12).
+- Comparisons (`--vs`): paired bootstrap over photos, 2,000 resamples, 95% interval; a difference
+  is called real only if the interval excludes 0. Required for every ablation (hard rule 7).
+- Run answers and per-photo scores stay in `$RETRACE_DATA/runs/` (outside git); summaries go to
+  `results/runs/<run_id>.json` and one row per run in `results/runs.csv`. Runs marked
+  `"private": true` are refused, so private-set results never land in the repo.

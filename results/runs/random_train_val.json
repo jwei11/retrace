@@ -1,0 +1,93 @@
+{
+  "run": {
+    "run_id": "random_train_val",
+    "dataset": "osv5m",
+    "split": "val",
+    "model": "baseline:random_train",
+    "config": {},
+    "notes": "random train label per photo (seed 0), radius 5000 km"
+  },
+  "micro": {
+    "n": 1994,
+    "valid_frac": 1.0,
+    "median_km": 7822.270399531463,
+    "acc@1": 0.0,
+    "acc@25": 0.0,
+    "acc@200": 0.00802407221664995,
+    "acc@750": 0.06770310932798396,
+    "acc@2500": 0.22166499498495487,
+    "geo_shaped": 0.11968266380109502,
+    "geo_nll": 19.927266996227996,
+    "in_radius": 0.31293881644934807,
+    "n_time": 1369,
+    "year_exact": 0.14901387874360847,
+    "median_year_err": 2.0,
+    "median_doy_err_d": 90.2031095278719,
+    "doy_within_7d": 0.03433162892622352,
+    "doy_within_30d": 0.16508400292184075,
+    "secondary_median_hour_err_h": 4.505555555555556
+  },
+  "macro_by_stratum": {
+    "median_km": 7542.91694588571,
+    "geo_shaped": 0.08286956810097729,
+    "acc@1": 0.0,
+    "acc@25": 0.0,
+    "acc@200": 0.004031263521725944,
+    "acc@750": 0.029527165185758725,
+    "acc@2500": 0.16598581108394533,
+    "n_strata": 108
+  },
+  "calibrated_coverage_target": 0.3934693402873666,
+  "answer_rate": 1.0,
+  "n_errors": 0,
+  "uploader": {
+    "seen": {
+      "n": 1729,
+      "valid_frac": 1.0,
+      "median_km": 7904.391915768971,
+      "acc@1": 0.0,
+      "acc@25": 0.0,
+      "acc@200": 0.008675534991324466,
+      "acc@750": 0.06651243493348756,
+      "acc@2500": 0.21573163678426838,
+      "geo_shaped": 0.11735118541129531,
+      "geo_nll": 19.95277514606592,
+      "in_radius": 0.30537883169462116,
+      "n_time": 1168,
+      "year_exact": 0.15325342465753425,
+      "median_year_err": 2.0,
+      "median_doy_err_d": 90.76148867952168,
+      "doy_within_7d": 0.036815068493150686,
+      "doy_within_30d": 0.1643835616438356,
+      "secondary_median_hour_err_h": 4.616944444444444
+    },
+    "new": {
+      "n": 265,
+      "valid_frac": 1.0,
+      "median_km": 7461.075223792859,
+      "acc@1": 0.0,
+      "acc@25": 0.0,
+      "acc@200": 0.0037735849056603774,
+      "acc@750": 0.07547169811320754,
+      "acc@2500": 0.26037735849056604,
+      "geo_shaped": 0.1348944605405806,
+      "geo_nll": 19.760838350681688,
+      "in_radius": 0.3622641509433962,
+      "n_time": 201,
+      "year_exact": 0.12437810945273632,
+      "median_year_err": 2.0,
+      "median_doy_err_d": 87.09933863571712,
+      "doy_within_7d": 0.01990049751243781,
+      "doy_within_30d": 0.1691542288557214,
+      "secondary_median_hour_err_h": 3.764166666666666
+    },
+    "seen_frac": 0.8671013039117352
+  },
+  "cost": {
+    "mean_tokens_in": 0.0,
+    "mean_tokens_out": 0.0,
+    "total_tokens": 0,
+    "mean_latency_s": 0.0,
+    "p95_latency_s": 0.0
+  }
+}

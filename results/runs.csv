@@ -1,0 +1,3 @@
+run_id,scored_at,dataset,split,model,n,answer_rate,median_km,acc@1,acc@25,acc@200,acc@750,acc@2500,geo_shaped,macro_geo_shaped,in_radius,n_time,year_exact,doy_within_30d,new_uploader_geo_shaped,mean_tokens,mean_latency_s
+random_train_val,2026-11-11 10:47,osv5m,val,baseline:random_train,1994,1.0,7822.3,0.0,0.0,0.008,0.0677,0.2217,0.1197,0.0829,0.3129,1369,0.149,0.1651,0.1349,0,0.0
+constant_val,2026-11-11 10:47,osv5m,val,baseline:constant,1994,1.0,5748.2,0.0,0.0,0.009,0.1595,0.4097,0.2287,0.1892,0.5181,1369,0.2352,0.1665,0.2984,0,0.0
