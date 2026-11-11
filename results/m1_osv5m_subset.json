@@ -1,0 +1,57 @@
+{
+  "split_report": {
+    "n_train": 20000,
+    "n_val": 2000,
+    "dropped_for_separation": 204,
+    "train_groups": 12017,
+    "val_groups": 1293,
+    "creator_overlap_val_frac": 0.867
+  },
+  "train": {
+    "n": 20000,
+    "groups": 12017,
+    "countries": 170,
+    "time_reliable_frac": 0.698,
+    "label_sun_below_civil_frac": 0.116,
+    "top5_countries_pct": {
+      "US": 26.7,
+      "DE": 6.8,
+      "FR": 5.1,
+      "RU": 4.4,
+      "JP": 4.1
+    }
+  },
+  "val": {
+    "n": 2000,
+    "groups": 1293,
+    "countries": 108,
+    "time_reliable_frac": 0.684,
+    "label_sun_below_civil_frac": 0.124,
+    "top5_countries_pct": {
+      "US": 27.4,
+      "DE": 6.3,
+      "FR": 6.3,
+      "RU": 6.2,
+      "JP": 3.8
+    }
+  },
+  "test": {
+    "n": 2000,
+    "groups": 2000,
+    "countries": 166,
+    "time_reliable_frac": 0.633,
+    "label_sun_below_civil_frac": 0.155,
+    "top5_countries_pct": {
+      "US": 15.1,
+      "RU": 6.2,
+      "AU": 4.2,
+      "BR": 4.1,
+      "IN": 2.8
+    }
+  },
+  "creator_qa": {
+    "creators": 20874,
+    "reliable_creators": 6522,
+    "photos_with_reliable_time_frac": 0.716
+  }
+}

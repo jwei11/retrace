@@ -1,0 +1,58 @@
+[project]
+name = "retrace"
+version = "0.1.0"
+description = "A tool-using agent that infers where and when a photo was taken."
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    # Core numerics / data
+    "numpy>=1.26,<2.3",
+    "pandas>=2.2",
+    "pyarrow>=17",
+    "pillow>=11",
+    "tqdm>=4.66",
+    "pyyaml>=6",
+    # Geo / time (timezonefinder reused from PhotoTrails)
+    "timezonefinder>=6.5",
+    "astral>=3.2",
+    # Models. torch from the cu126 index below: its wheels include sm_75 (Turing).
+    "torch>=2.7",
+    "torchvision>=0.22",
+    "transformers>=4.57",
+    "accelerate>=1.2",
+    "bitsandbytes>=0.45",
+    "huggingface-hub>=0.30",
+    "datasets>=3.0",
+    "requests>=2.34.2",
+]
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[tool.uv]
+# Pin a CUDA 12.6 build: cu126 wheels still ship sm_75 kernels; some newer CUDA
+# builds drop older architectures. See DECISIONS.md D-002.
+index-strategy = "unsafe-best-match"
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu126" }
+torchvision = { index = "pytorch-cu126" }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/retrace"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

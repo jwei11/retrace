@@ -1,0 +1,25 @@
+# Personal data and anything derived from it (hard rule 3)
+data/private/*
+!data/private/.gitkeep
+
+# Bulk public data, caches, model weights
+data/*
+!data/private/
+!data/README.md
+*.parquet
+!results/**/*.parquet
+cache/
+models/
+*.safetensors
+*.gguf
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Local secrets
+.env
