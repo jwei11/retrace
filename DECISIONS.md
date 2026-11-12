@@ -177,3 +177,26 @@ rather than mixing in location error. Clock time vs solar time: status open (PRO
 - Run answers and per-photo scores stay in `$RETRACE_DATA/runs/` (outside git); summaries go to
   `results/runs/<run_id>.json` and one row per run in `results/runs.csv`. Runs marked
   `"private": true` are refused, so private-set results never land in the repo.
+
+**D-045 Harness v1 design (M5)** (choices by the user, 2026-11-11; `src/retrace/env`,
+`src/retrace/harness/agent.py`, `src/retrace/tools/`, `src/retrace/middleware`, `scripts/run_agent.py`).
+- **Actions are schema-forced JSON**: each turn vLLM constrains the reply to
+  `{"thought", "action": {"tool", "args"}}`, and the schema lists only the actions the budgets still
+  allow. A 2B model never makes a malformed call; trajectories are clean fine-tuning data.
+  *Alternative:* the model's native tool-call format (rejected: small models drop calls).
+  The server sets `disable_any_whitespace` (xgrammar): without it the model sometimes filled the
+  JSON with spaces until max_tokens (2 of 8 smoke episodes).
+- **Tools v1**: `view` (zoom crop of the sanitized photo, scaled to <=768x512), `similar(k)` (SigLIP
+  train index; place, coordinates, UTC time of the k nearest; the photo's own capture sequence
+  excluded, as in the kNN baseline), `sun` (NOAA solar position), `gazetteer` (GeoNames cities500,
+  exact name match, top 5 by population), `answer`. OCR deferred: the VLM reads text via `view`.
+- **Budgets**: 6 turns, 4 images, and a forced answer when the context would exceed 6,144 - 1,000
+  tokens (the server's limit; the KV cache holds ~1.15 full-length requests, so concurrency is low).
+- **Middleware**, outermost first: Trace (per-call log), Fault (injected tool failures, default
+  off), Cache (identical calls), Placebo. Placebo outputs: `similar` = real similarity values with
+  random train photos' labels; `sun` = values for a random place and time; `gazetteer` = as many
+  random places; `view` = the whole photo again.
+- **Eval**: fixed 300-photo val subset (`dev300`, seed 0, non-junk) for iteration, full val for
+  final numbers. `score_run.py --vs` compares on the subset's photos when the other run is full val.
+- Tools never see labels or metadata of the query photo; the env never holds them (hard rule 5).
+  `similar` gets the photo's capture-sequence id env-side only, to exclude it.

@@ -1,0 +1,208 @@
+{
+  "run": {
+    "run_id": "agent_qwen3-vl-2b-instruct_view+similar+sun+gazetteer_placebo-all_val_dev300",
+    "dataset": "osv5m",
+    "split": "val",
+    "subset": "dev300",
+    "model": "Qwen/Qwen3-VL-2B-Instruct",
+    "config": {
+      "runtime": "vllm 0.33.0 fp16",
+      "tools": [
+        "view",
+        "similar",
+        "sun",
+        "gazetteer"
+      ],
+      "placebo": [
+        "gazetteer",
+        "similar",
+        "sun",
+        "view"
+      ],
+      "fault_rate": 0.0,
+      "max_steps": 6,
+      "max_images": 4,
+      "temperature": 0,
+      "max_tokens_per_turn": 400,
+      "action_format": "schema-forced JSON",
+      "concurrency": 4
+    },
+    "notes": "agent loop (M5). wall 1559s for 300 photos, 0 errors"
+  },
+  "micro": {
+    "n": 300,
+    "valid_frac": 1.0,
+    "median_km": 850.4182767128708,
+    "acc@1": 0.013333333333333334,
+    "acc@25": 0.03666666666666667,
+    "acc@200": 0.16,
+    "acc@750": 0.49,
+    "acc@2500": 0.7,
+    "geo_shaped": 0.5012515702066073,
+    "geo_nll": 83301.36205840686,
+    "in_radius": 0.023333333333333334,
+    "n_time": 197,
+    "year_exact": 0.06598984771573604,
+    "median_year_err": 4.0,
+    "median_doy_err_d": 41.37677530447991,
+    "doy_within_7d": 0.10152284263959391,
+    "doy_within_30d": 0.4213197969543147,
+    "secondary_median_hour_err_h": 4.37777777777778
+  },
+  "macro_by_stratum": {
+    "median_km": 3073.081198462248,
+    "geo_shaped": 0.42927804429264266,
+    "acc@1": 0.018698893698893698,
+    "acc@25": 0.047108843537414964,
+    "acc@200": 0.1475667034490564,
+    "acc@750": 0.3876069619767099,
+    "acc@2500": 0.6204346385018653,
+    "n_strata": 63
+  },
+  "calibrated_coverage_target": 0.3934693402873666,
+  "answer_rate": 1.0,
+  "n_errors": 0,
+  "uploader": {
+    "seen": {
+      "n": 261,
+      "valid_frac": 1.0,
+      "median_km": 885.5445623033581,
+      "acc@1": 0.01532567049808429,
+      "acc@25": 0.038314176245210725,
+      "acc@200": 0.16091954022988506,
+      "acc@750": 0.4827586206896552,
+      "acc@2500": 0.6819923371647509,
+      "geo_shaped": 0.4920153045997311,
+      "geo_nll": 88092.65223630215,
+      "in_radius": 0.02681992337164751,
+      "n_time": 171,
+      "year_exact": 0.07017543859649122,
+      "median_year_err": 4.0,
+      "median_doy_err_d": 38.58419920392336,
+      "doy_within_7d": 0.11695906432748537,
+      "doy_within_30d": 0.4502923976608187,
+      "secondary_median_hour_err_h": 4.518055555555556
+    },
+    "new": {
+      "n": 39,
+      "valid_frac": 1.0,
+      "median_km": 611.4888105819421,
+      "acc@1": 0.0,
+      "acc@25": 0.02564102564102564,
+      "acc@200": 0.15384615384615385,
+      "acc@750": 0.5384615384615384,
+      "acc@2500": 0.8205128205128205,
+      "geo_shaped": 0.5630635015757017,
+      "geo_nll": 51236.57394479998,
+      "in_radius": 0.0,
+      "n_time": 26,
+      "year_exact": 0.038461538461538464,
+      "median_year_err": 4.0,
+      "median_doy_err_d": 87.57709791872242,
+      "doy_within_7d": 0.0,
+      "doy_within_30d": 0.23076923076923078,
+      "secondary_median_hour_err_h": 3.384027777777778
+    },
+    "seen_frac": 0.87
+  },
+  "cost": {
+    "mean_tokens_in": 8176.33,
+    "mean_tokens_out": 695.01,
+    "total_tokens": 2661402,
+    "mean_latency_s": 20.72235,
+    "p95_latency_s": 26.9694
+  },
+  "vs": {
+    "run_id": "agent_qwen3-vl-2b-instruct_view+similar+sun+gazetteer_val_dev300",
+    "metrics": {
+      "geo_shaped": {
+        "a": 0.5012515702066073,
+        "b": 0.6703138382640011,
+        "diff": -0.16906226805739388,
+        "ci95": [
+          -0.2069977036980755,
+          -0.1315217732679306
+        ],
+        "significant": true,
+        "n": 300
+      },
+      "acc@25": {
+        "a": 0.03666666666666667,
+        "b": 0.10666666666666667,
+        "diff": -0.07,
+        "ci95": [
+          -0.10333333333333333,
+          -0.03666666666666667
+        ],
+        "significant": true,
+        "n": 300
+      },
+      "acc@200": {
+        "a": 0.16,
+        "b": 0.31666666666666665,
+        "diff": -0.15666666666666665,
+        "ci95": [
+          -0.20666666666666664,
+          -0.11000000000000001
+        ],
+        "significant": true,
+        "n": 300
+      },
+      "acc@750": {
+        "a": 0.49,
+        "b": 0.69,
+        "diff": -0.19999999999999996,
+        "ci95": [
+          -0.25666666666666665,
+          -0.14
+        ],
+        "significant": true,
+        "n": 300
+      },
+      "acc@2500": {
+        "a": 0.7,
+        "b": 0.8866666666666667,
+        "diff": -0.18666666666666676,
+        "ci95": [
+          -0.24,
+          -0.1366666666666666
+        ],
+        "significant": true,
+        "n": 300
+      },
+      "median_km": {
+        "a": 850.4182767128708,
+        "b": 384.7180496119455,
+        "diff": 465.7002271009253,
+        "ci95": [
+          230.78898533622072,
+          652.6952358901892
+        ],
+        "significant": true,
+        "n": 300
+      },
+      "year_exact": {
+        "a": 0.06598984771573604,
+        "b": 0.14720812182741116,
+        "diff": -0.08121827411167512,
+        "ci95": [
+          -0.1319796954314721,
+          -0.03045685279187818
+        ],
+        "significant": true,
+        "n": 197
+      },
+      "doy_within_30d": {
+        "a": 0.4213197969543147,
+        "b": 0.41624365482233505,
+        "diff": 0.005076142131979655,
+        "ci95": [
+          -0.05583756345177665,
+          0.06598984771573602
+        ],
+        "significant": false,
+        "n": 197
+      }
+    }
+  }
+}

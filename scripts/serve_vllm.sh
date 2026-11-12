@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Serve a VLM with vLLM (OpenAI-compatible API on 127.0.0.1:8000) from its own venv (~/.venvs/vllm),
 # kept separate because vLLM pins its own torch (D-005).
+# disable_any_whitespace: forced-JSON grammars otherwise let a small model emit spaces until max_tokens.
 # Turing: fp16 only (--dtype half), no FlashAttention; vLLM picks a supported attention backend.
 #   bash scripts/serve_vllm.sh [model] [max_model_len]
 source "$(dirname "$0")/wsl_env.sh"
@@ -12,6 +13,7 @@ exec "$HOME/.venvs/vllm/bin/vllm" serve "$MODEL" \
   --dtype half \
   --max-model-len "$MAXLEN" \
   --gpu-memory-utilization 0.85 \
-  --limit-mm-per-prompt '{"image": 1}' \
+  --limit-mm-per-prompt "{\"image\": ${MAXIMG:-4}}" \
   --max-num-seqs 8 \
+  --structured-outputs-config '{"backend": "xgrammar", "disable_any_whitespace": true}' \
   --seed 0
