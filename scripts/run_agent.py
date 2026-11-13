@@ -41,6 +41,7 @@ def main() -> None:
     ap.add_argument("--max-steps", type=int, default=6)
     ap.add_argument("--max-images", type=int, default=4)
     ap.add_argument("--concurrency", type=int, default=4)
+    ap.add_argument("--skill", default="", help="skills/<name>.md appended to the instruction")
     ap.add_argument("--tag", default="", help="extra suffix for the run id")
     args = ap.parse_args()
 
@@ -58,10 +59,11 @@ def main() -> None:
         m = m[m.id.isin(subset_ids("osv5m", args.split, args.subset))]
     if args.limit:
         m = m.head(args.limit)
+    skills = (Path(__file__).resolve().parents[1] / "skills" / f"{args.skill}.md").read_text().strip()         if args.skill else ""
     photos = [Photo(r.id, r.sanitized_path, r.group_id) for r in m.itertuples()]
 
     def one(p: Photo) -> dict:
-        env = Env(reg, max_steps=args.max_steps, max_images=args.max_images)
+        env = Env(reg, max_steps=args.max_steps, max_images=args.max_images, skills=skills)
         return run_episode(model, env, p, seed=0)
 
     t = time.time()
@@ -71,6 +73,8 @@ def main() -> None:
 
     short = re.sub(r"[^a-z0-9]+", "-", model.model.split("/")[-1].lower()).strip("-")
     tag = "+".join(names) or "notools"
+    if args.skill:
+        tag += f"_skill-{args.skill}"
     if placebo:
         tag += "_placebo-" + ("all" if placebo == set(names) else "+".join(sorted(placebo)))
     run_id = f"agent_{short}_{tag}_{args.split}" + (f"_{args.subset}" if args.subset else "") \
@@ -80,7 +84,7 @@ def main() -> None:
     write_run(run_id, {
         "dataset": "osv5m", "split": args.split, "subset": args.subset, "model": model.model,
         "config": {"runtime": "vllm 0.33.0 fp16", "tools": names, "placebo": sorted(placebo),
-                   "fault_rate": args.fault_rate, "max_steps": args.max_steps, "max_images": args.max_images,
+                   "fault_rate": args.fault_rate, "skill": args.skill or None, "max_steps": args.max_steps, "max_images": args.max_images,
                    "temperature": 0, "max_tokens_per_turn": 400, "action_format": "schema-forced JSON",
                    "concurrency": args.concurrency},
         "notes": f"agent loop (M5). wall {wall:.0f}s for {len(answers)} photos, {n_err} errors",

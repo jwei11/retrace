@@ -43,3 +43,36 @@ Embedder: `google/siglip2-so400m-patch14-384`; index = train, non-junk, own grou
 - **Tool use is poor**: 610 `gazetteer` calls in 300 episodes, mostly famous places it guessed rather
   than names it read; `similar` only 210 times. ~10x the tokens of the model alone (7.4k vs 0.7k).
 - Calibration still broken (in_radius 0.05). These are the targets for prompting/skills and fine-tuning.
+
+## Skill: playbook_v1 (dev300, D-046)
+
+`skills/playbook_v1.md` (6 rules: similar first, trust agreeing neighbors, gazetteer only on read
+names, dates from neighbors, radius from neighbor spread, answer early) vs harness v1:
+
+| Run | geo_shaped | median km | acc@200 | in_radius (target 0.39) | year exact | new-uploader | tokens/ep | latency/ep |
+|---|---|---|---|---|---|---|---|---|
+| Harness v1 | 0.670 | 385 | 31.7% | 0.05 | 14.7% | 0.688 | 7,388 | 17.9 s |
+| + playbook_v1 | **0.736** | 299 | 41.3% | **0.40** | 29.6% | 0.676 | 8,405 | 33.1 s |
+| kNN-10 (same photos) | 0.732 | | | | 39.7% | | 0 | <0.01 s |
+
+- +0.066 geo_shaped over v1 (real); every location metric and year improve (real).
+- **Ties kNN** (+0.004, could be luck); still behind on year (-10 pts, real).
+- **Calibration fixed**: radius now holds the truth 40% of the time (was 5%).
+- Caveat: the rules were written after seeing v1's failures on dev300, so confirm on full val.
+- Latency doubled (33 s/photo at 4 parallel; 1 error in 300).
+
+### Skill control arms (dev300)
+
+Same harness, same length (~150 words) appended to the prompt:
+
+| Skill | geo_shaped | median km | acc@200 | in_radius | year exact | vs v1 | vs playbook |
+|---|---|---|---|---|---|---|---|
+| none (harness v1) | 0.670 | 385 | 31.7% | 0.05 | 14.7% | | -0.066 real |
+| `playbook_v1` (tool procedure) | **0.736** | 299 | 41.3% | **0.40** | 29.6% | +0.066 real | |
+| `adjacent_v1` (true geo tips, no procedure) | 0.633 | 485 | 24.3% | 0.02 | 13.2% | **-0.037 real** | -0.103 real |
+| `garbage_v1` (cooking, laundry...) | 0.654 | 413 | 33.0% | 0.07 | 13.2% | -0.017 luck | -0.083 real |
+
+- The gain is the **procedure**, not extra text: garbage text does nothing measurable.
+- Correct domain knowledge **hurts**: the model leans on generic visual rules (e.g. guesses from
+  road-line colors) instead of the neighbors, and calls `similar` less (187 vs 302 times).
+- Latency varies run to run (18-43 s/photo) with the same settings; not a reliable cost signal yet.

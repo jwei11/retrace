@@ -30,7 +30,7 @@ Look at road markings, signs and scripts, vehicles, vegetation, terrain, archite
 You can call tools before answering. Each turn, reply with JSON: "thought" (one or two short sentences of reasoning) and "action" ({{"tool": ..., "args": {{...}}}}).
 Tools:
 {tools}
-You have at most {steps} turns in total; the last one must be answer."""
+You have at most {steps} turns in total; the last one must be answer.{skills}"""
 
 
 def data_url(jpeg: bytes) -> str:
@@ -39,7 +39,8 @@ def data_url(jpeg: bytes) -> str:
 
 class Env:
     def __init__(self, registry: Registry, max_steps: int = 6, max_images: int = 4,
-                 ctx_limit: int = 6144, step_reserve: int = 1000):
+                 ctx_limit: int = 6144, step_reserve: int = 1000, skills: str = ""):
+        self.skills = skills   # skill/playbook text appended to the instruction (D-046)
         self.reg, self.max_steps, self.max_images = registry, max_steps, max_images
         self.ctx_limit, self.step_reserve = ctx_limit, step_reserve   # reserve: next observation + reply
 
@@ -52,7 +53,8 @@ class Env:
         jpeg = ((data_root or DATA) / photo.image_path).read_bytes()
         return [{"role": "user", "content": [
             {"type": "image_url", "image_url": {"url": data_url(jpeg)}},
-            {"type": "text", "text": INSTRUCTION.format(tools=tools, steps=self.max_steps)}]}]
+            {"type": "text", "text": INSTRUCTION.format(tools=tools, steps=self.max_steps,
+                                                               skills="\n\n" + self.skills if self.skills else "")}]}]
 
     def allowed(self, prompt_tokens: int) -> list[str]:
         """Actions the budgets allow this turn (answer is always allowed)."""

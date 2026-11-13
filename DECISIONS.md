@@ -200,3 +200,13 @@ rather than mixing in location error. Clock time vs solar time: status open (PRO
   final numbers. `score_run.py --vs` compares on the subset's photos when the other run is full val.
 - Tools never see labels or metadata of the query photo; the env never holds them (hard rule 5).
   `similar` gets the photo's capture-sequence id env-side only, to exclude it.
+
+**D-046 Skills are prompt files** (`skills/<name>.md`, `run_agent.py --skill`), appended to the
+instruction, so each is versioned and ablated on its own. `playbook_v1` encodes the failures seen in
+harness v1 (guessed gazetteer calls, ignored neighbors, overconfident radius): +0.066 geo_shaped on
+dev300 and calibrated radius. Risk: written after looking at dev300 results, so dev300 overstates it;
+full-val confirmation required before it counts. *Alternative:* skills as callable tools that return
+instructions (deferred: needs the model to know when to call them).
+D-046 controls (dev300): an equal-length adjacent skill (true geolocation tips, no procedure) scores
+0.633 (-0.037 vs no skill, real) and a garbage skill 0.654 (no real change). So skills are kept only
+if they beat both controls; the playbook's gain is the procedure itself.

@@ -13,7 +13,7 @@ Last updated: 2026-11-11
 | M2 Sanitization + leakage | Code + tests done | Corpus audit passes on val. LEAKAGE.md drafted. |
 | M3 Splits | Done for OSV-5M | Stratified (country-macro) view implemented in scoring. Label-concentration report not written yet. |
 | M4 Scoring | Done | `scripts/score_run.py` (D-044): worst score for missing answers, junk excluded, seen/new uploader view, `--vs` paired bootstrap. 14 unit tests. |
-| M5 Harness | v1 done | Env, schema-forced JSON actions, tools view/similar/sun/gazetteer, middleware (trace, fault, cache, placebo), budgets, trajectory log (D-045). No memory/RAG/compaction yet. |
+| M5 Harness | v1 done | Env, schema-forced JSON actions, tools view/similar/sun/gazetteer, middleware (trace, fault, cache, placebo), budgets, trajectory log (D-045). Skill `playbook_v1`: 0.736 on dev300 (ties kNN 0.732), radius calibrated (D-046). No memory/RAG/compaction yet. |
 | M6 Baselines | Pre-harness part done | `results/baselines.md`: SigLIP kNN 0.745 geo_shaped, Qwen3-VL-2B alone 0.675, constant 0.229. #3 tools 0.670 / #4 placebo 0.501 on dev300 (kNN 0.732 there). #5 API model needs the user's OK. |
 
 ## M0 measurements (RTX 2070 Super, 8 GB, one 384 px image, 200 new tokens, greedy)
