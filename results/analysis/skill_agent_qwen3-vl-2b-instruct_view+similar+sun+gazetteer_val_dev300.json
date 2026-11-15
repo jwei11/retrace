@@ -1,0 +1,58 @@
+{
+  "run_id": "agent_qwen3-vl-2b-instruct_view+similar+sun+gazetteer_val_dev300",
+  "n": 300,
+  "copy_classes": {
+    "copy#1": {
+      "n": 35,
+      "agent": 0.7779,
+      "knn10": 0.7579,
+      "share": 0.1167
+    },
+    "copy-other": {
+      "n": 24,
+      "agent": 0.7604,
+      "knn10": 0.762,
+      "share": 0.08
+    },
+    "near": {
+      "n": 29,
+      "agent": 0.9104,
+      "knn10": 0.8581,
+      "share": 0.0967
+    },
+    "no-similar": {
+      "n": 112,
+      "agent": 0.6566,
+      "knn10": 0.6945,
+      "share": 0.3733
+    },
+    "own": {
+      "n": 100,
+      "agent": 0.5567,
+      "knn10": 0.7227,
+      "share": 0.3333
+    }
+  },
+  "compliance": {
+    "similar_first": 0.013333333333333334,
+    "called_similar": 0.6266666666666667,
+    "gazetteer_calls_per_photo": 2.033333333333333,
+    "gazetteer_no_match_share": 0.43278688524590164,
+    "gazetteer_name_from_neighbors_share": 0.10983606557377049,
+    "median_radius_over_spread": 0.01996736355127885
+  },
+  "geo_shaped_by_similar_first": {
+    "false": {
+      "size": 296,
+      "mean": 0.6686708036592476
+    },
+    "true": {
+      "size": 4,
+      "mean": 0.791898399015759
+    }
+  },
+  "agent_vs_knn10_overall": [
+    0.6703138382640011,
+    0.7325189626203639
+  ]
+}

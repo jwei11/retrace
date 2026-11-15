@@ -1,0 +1,64 @@
+{
+  "run_id": "agent_qwen3-vl-2b-instruct_view+similar+sun+gazetteer_skill-playbook_v1_val_dev300",
+  "n": 300,
+  "copy_classes": {
+    "copy#1": {
+      "n": 125,
+      "agent": 0.7425,
+      "knn10": 0.7394,
+      "share": 0.4167
+    },
+    "copy-other": {
+      "n": 34,
+      "agent": 0.8497,
+      "knn10": 0.7776,
+      "share": 0.1133
+    },
+    "near": {
+      "n": 68,
+      "agent": 0.7481,
+      "knn10": 0.7178,
+      "share": 0.2267
+    },
+    "no-answer": {
+      "n": 1,
+      "agent": 0.0,
+      "knn10": 0.8961,
+      "share": 0.0033
+    },
+    "no-similar": {
+      "n": 46,
+      "agent": 0.7021,
+      "knn10": 0.7665,
+      "share": 0.1533
+    },
+    "own": {
+      "n": 26,
+      "agent": 0.6181,
+      "knn10": 0.6124,
+      "share": 0.0867
+    }
+  },
+  "compliance": {
+    "similar_first": 0.6433333333333333,
+    "called_similar": 0.8433333333333334,
+    "gazetteer_calls_per_photo": 1.2566666666666666,
+    "gazetteer_no_match_share": 0.3793103448275862,
+    "gazetteer_name_from_neighbors_share": 0.5782493368700266,
+    "median_radius_over_spread": 0.3517674370686557
+  },
+  "geo_shaped_by_similar_first": {
+    "false": {
+      "size": 107,
+      "mean": 0.7680976486801243
+    },
+    "true": {
+      "size": 193,
+      "mean": 0.7188988139691292
+    }
+  },
+  "agent_vs_knn10_overall": [
+    0.7364463983493842,
+    0.7325189626203639
+  ]
+}

@@ -8,8 +8,12 @@ import pandas as pd
 
 
 def subset_ids(dataset: str, split: str, name: str) -> set[str]:
-    """name 'devN': N non-junk photos sampled once with seed 0 and frozen to disk."""
+    """name 'devN': N non-junk photos sampled once with seed 0 and frozen to disk.
+    name 'not-devN': every other non-junk photo of the split (held-out confirmation set)."""
     data = Path(os.environ["RETRACE_DATA"])
+    if name.startswith("not-"):
+        m = pd.read_parquet(data / "manifests" / f"{dataset}_{split}_sanitized.parquet")
+        return set(m[~m.junk].id) - subset_ids(dataset, split, name.removeprefix("not-"))
     path = data / "splits" / f"{dataset}_{split}_{name}.parquet"
     if not path.exists():
         n = int(name.removeprefix("dev"))

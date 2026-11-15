@@ -90,13 +90,14 @@ def one(model: str, row, max_tokens: int, retries: int = 2) -> dict:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("split")
+    ap.add_argument("--dataset", default="osv5m")
     ap.add_argument("--limit", type=int)
     ap.add_argument("--concurrency", type=int, default=8)
     ap.add_argument("--max-tokens", type=int, default=512)
     args = ap.parse_args()
 
     model = requests.get(f"{URL}/models", timeout=30).json()["data"][0]["id"]
-    m = pd.read_parquet(DATA / "manifests" / f"osv5m_{args.split}_sanitized.parquet")
+    m = pd.read_parquet(DATA / "manifests" / f"{args.dataset}_{args.split}_sanitized.parquet")
     m = m[~m.junk]
     if args.limit:
         m = m.sample(args.limit, random_state=0)
@@ -107,9 +108,10 @@ def main() -> None:
     n_err = sum("error" in a for a in answers)
 
     short = re.sub(r"[^a-z0-9]+", "-", model.split("/")[-1].lower()).strip("-")
-    run_id = f"vlm_direct_{short}_{args.split}" + (f"_n{args.limit}" if args.limit else "")
+    ds = "" if args.dataset == "osv5m" else f"{args.dataset}_"
+    run_id = f"vlm_direct_{short}_{ds}{args.split}" + (f"_n{args.limit}" if args.limit else "")
     write_run(run_id, {
-        "dataset": "osv5m", "split": args.split, "model": model,
+        "dataset": args.dataset, "split": args.split, "model": model,
         "config": {"runtime": "vllm 0.33.0 fp16", "image": "sanitized 768x512, full frame", "tools": None,
                    "temperature": 0, "max_tokens": args.max_tokens, "structured_output": "json_schema",
                    "concurrency": args.concurrency},

@@ -1,0 +1,67 @@
+{
+  "run": {
+    "run_id": "knn10_im2gps3k_test",
+    "dataset": "im2gps3k",
+    "split": "test",
+    "model": "baseline:siglip-knn10",
+    "config": {
+      "embedder": "google/siglip2-so400m-patch14-384",
+      "index": "train, non-junk",
+      "k": 10,
+      "vote_km": 25.0
+    },
+    "notes": "25 km similarity vote among 10 nearest"
+  },
+  "micro": {
+    "n": 2997,
+    "valid_frac": 1.0,
+    "median_km": 1184.1550453500047,
+    "acc@1": 0.005338672005338672,
+    "acc@25": 0.09075742409075742,
+    "acc@200": 0.18651985318651984,
+    "acc@750": 0.3933933933933934,
+    "acc@2500": 0.6332999666333,
+    "geo_shaped": 0.44505624028602103,
+    "geo_nll": 38.90287418600805,
+    "in_radius": 0.5675675675675675,
+    "n_time": 0
+  },
+  "macro_by_stratum": {
+    "median_km": 3070.5656194737417,
+    "geo_shaped": 0.38820354485466185,
+    "acc@1": 0.0029295504037984664,
+    "acc@25": 0.0361373087610192,
+    "acc@200": 0.12160745204202497,
+    "acc@750": 0.33299307782596677,
+    "acc@2500": 0.5867989847592373,
+    "n_strata": 113
+  },
+  "calibrated_coverage_target": 0.3934693402873666,
+  "answer_rate": 1.0,
+  "n_errors": 0,
+  "uploader": {
+    "seen": null,
+    "new": {
+      "n": 2997,
+      "valid_frac": 1.0,
+      "median_km": 1184.1550453500047,
+      "acc@1": 0.005338672005338672,
+      "acc@25": 0.09075742409075742,
+      "acc@200": 0.18651985318651984,
+      "acc@750": 0.3933933933933934,
+      "acc@2500": 0.6332999666333,
+      "geo_shaped": 0.44505624028602103,
+      "geo_nll": 38.90287418600805,
+      "in_radius": 0.5675675675675675,
+      "n_time": 0
+    },
+    "seen_frac": 0.0
+  },
+  "cost": {
+    "mean_tokens_in": 0.0,
+    "mean_tokens_out": 0.0,
+    "total_tokens": 0,
+    "mean_latency_s": null,
+    "p95_latency_s": null
+  }
+}

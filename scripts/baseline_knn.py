@@ -2,6 +2,9 @@
 
   embed:  uv run python scripts/baseline_knn.py embed            (all splits; GPU must be free)
   run:    uv run python scripts/baseline_knn.py run val          (writes two runs: knn1, knn10)
+  other benchmarks (index stays OSV-5M train):
+          uv run python scripts/baseline_knn.py embed im2gps3k test
+          uv run python scripts/baseline_knn.py run test im2gps3k
 
 Embeddings: google/siglip2-so400m-patch14-384 image features of the SANITIZED photos, fp16,
 L2-normalized -> $RETRACE_DATA/embeddings/siglip2-so400m/{split}.npy + {split}_ids.parquet.
@@ -29,11 +32,15 @@ EMB = DATA / "embeddings" / "siglip2-so400m"
 SPLITS = ("train", "val", "test")
 
 
-def manifest(split: str) -> pd.DataFrame:
-    return pd.read_parquet(DATA / "manifests" / f"osv5m_{split}_sanitized.parquet")
+def manifest(split: str, dataset: str = "osv5m") -> pd.DataFrame:
+    return pd.read_parquet(DATA / "manifests" / f"{dataset}_{split}_sanitized.parquet")
 
 
-def embed() -> None:
+def emb_name(split: str, dataset: str = "osv5m") -> str:
+    return split if dataset == "osv5m" else f"{dataset}_{split}"
+
+
+def embed(dataset: str = "osv5m", splits=SPLITS) -> None:
     import torch
     from PIL import Image
     from transformers import AutoModel, AutoProcessor
@@ -41,8 +48,8 @@ def embed() -> None:
     proc = AutoProcessor.from_pretrained(MODEL)
     model = AutoModel.from_pretrained(MODEL, dtype=torch.float16).vision_model.to("cuda").eval()
     EMB.mkdir(parents=True, exist_ok=True)
-    for s in SPLITS:
-        m = manifest(s)
+    for s in splits:
+        m = manifest(s, dataset)
         out = np.zeros((len(m), model.config.hidden_size), np.float16)
         bs = 64
         for i in range(0, len(m), bs):
@@ -53,22 +60,23 @@ def embed() -> None:
             out[i:i + len(imgs)] = torch.nn.functional.normalize(f, dim=-1).cpu().numpy()
             if i % (bs * 50) == 0:
                 print(f"{s}: {i}/{len(m)}", flush=True)
-        np.save(EMB / f"{s}.npy", out)
-        m[["id"]].to_parquet(EMB / f"{s}_ids.parquet", index=False)
+        np.save(EMB / f"{emb_name(s, dataset)}.npy", out)
+        m[["id"]].to_parquet(EMB / f"{emb_name(s, dataset)}_ids.parquet", index=False)
         print(f"{s}: {len(m)} embedded", flush=True)
 
 
-def load(split: str) -> tuple[pd.DataFrame, np.ndarray]:
-    ids = pd.read_parquet(EMB / f"{split}_ids.parquet")
-    m = manifest(split).set_index("id").loc[ids.id].reset_index()
-    return m, np.load(EMB / f"{split}.npy").astype(np.float32)
+def load(split: str, dataset: str = "osv5m") -> tuple[pd.DataFrame, np.ndarray]:
+    n = emb_name(split, dataset)
+    ids = pd.read_parquet(EMB / f"{n}_ids.parquet")
+    m = manifest(split, dataset).set_index("id").loc[ids.id].reset_index()
+    return m, np.load(EMB / f"{n}.npy").astype(np.float32)
 
 
-def run(split: str, k: int = 10, vote_km: float = 25.0) -> None:
+def run(split: str, dataset: str = "osv5m", k: int = 10, vote_km: float = 25.0) -> None:
     tr, tr_e = load("train")
     keep = ~tr.junk.to_numpy()
     tr, tr_e = tr[keep].reset_index(drop=True), tr_e[keep]
-    q, q_e = load(split)
+    q, q_e = load(split, dataset)
     q_keep = ~q.junk.to_numpy()
     q, q_e = q[q_keep].reset_index(drop=True), q_e[q_keep]
 
@@ -97,15 +105,16 @@ def run(split: str, k: int = 10, vote_km: float = 25.0) -> None:
                         "utc_datetime": None if pd.isna(t10) else pd.Timestamp(t10).isoformat(),
                         "tokens_in": 0, "tokens_out": 0})
     cfg = {"embedder": MODEL, "index": "train, non-junk", "k": k, "vote_km": vote_km}
-    write_run(f"knn1_{split}", {"dataset": "osv5m", "split": split, "model": "baseline:siglip-knn1",
+    ds = "" if dataset == "osv5m" else f"{dataset}_"
+    write_run(f"knn1_{ds}{split}", {"dataset": dataset, "split": split, "model": "baseline:siglip-knn1",
                                 "config": {**cfg, "k": 1}, "notes": "nearest train neighbor's label"}, a1)
-    write_run(f"knn10_{split}", {"dataset": "osv5m", "split": split, "model": "baseline:siglip-knn10",
+    write_run(f"knn10_{ds}{split}", {"dataset": dataset, "split": split, "model": "baseline:siglip-knn10",
                                  "config": cfg, "notes": "25 km similarity vote among 10 nearest"}, a10)
-    print(f"wrote knn1_{split}, knn10_{split} ({len(q)} photos)")
+    print(f"wrote knn1_{ds}{split}, knn10_{ds}{split} ({len(q)} photos)")
 
 
 if __name__ == "__main__":
     if sys.argv[1] == "embed":
-        embed()
+        embed(sys.argv[2], sys.argv[3:]) if len(sys.argv) > 2 else embed()
     else:
-        run(sys.argv[2])
+        run(sys.argv[2], *sys.argv[3:4])

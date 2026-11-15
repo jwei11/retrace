@@ -58,19 +58,21 @@ class _Index:
     """SigLIP2 embeddings of train (non-junk) + query embeddings for val/test (baseline_knn.py)."""
 
     def __init__(self, emb_dir: Path):
-        def load(split):
-            ids = pd.read_parquet(emb_dir / f"{split}_ids.parquet").id
-            m = pd.read_parquet(DATA / "manifests" / f"osv5m_{split}_sanitized.parquet").set_index("id").loc[ids]
-            return m.reset_index(), np.load(emb_dir / f"{split}.npy").astype(np.float32)
+        def load(split, dataset="osv5m"):
+            n = split if dataset == "osv5m" else f"{dataset}_{split}"
+            ids = pd.read_parquet(emb_dir / f"{n}_ids.parquet").id
+            m = pd.read_parquet(DATA / "manifests" / f"{dataset}_{split}_sanitized.parquet").set_index("id").loc[ids]
+            return m.reset_index(), np.load(emb_dir / f"{n}.npy").astype(np.float32)
 
         tr, e = load("train")
         keep = ~tr.junk.to_numpy()
         self.train, self.emb = tr[keep].reset_index(drop=True), e[keep]
         self.groups = self.train.group_id.to_numpy()
         self.query: dict[str, np.ndarray] = {}
-        for s in ("val", "test"):
-            q, qe = load(s)
-            self.query.update(zip(q.id, qe))
+        for s, ds in (("val", "osv5m"), ("test", "osv5m"), ("test", "im2gps3k")):
+            if (emb_dir / f"{s if ds == 'osv5m' else f'{ds}_{s}'}.npy").exists():
+                q, qe = load(s, ds)
+                self.query.update(zip(q.id, qe))
 
     def line(self, i: int, sim: float) -> str:
         r = self.train.iloc[i]

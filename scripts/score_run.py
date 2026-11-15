@@ -36,7 +36,7 @@ def score(run_id: str) -> tuple[dict, pd.DataFrame]:
     labels = manifest(meta["dataset"], meta["split"])
     if meta.get("subset"):  # frozen dev subset (e.g. dev300): score only those photos
         labels = labels[labels.id.isin(subset_ids(meta["dataset"], meta["split"], meta["subset"]))]
-    train_creators = set(manifest(meta["dataset"], "train").creator_id)
+    train_creators = set(manifest("osv5m", "train").creator_id)  # the only training/reference set
     sc = score_run(load_answers(rdir / "answers.jsonl"), labels, train_creators)
     sc.to_parquet(rdir / "scores.parquet", index=False)
     return meta, sc

@@ -210,3 +210,29 @@ instructions (deferred: needs the model to know when to call them).
 D-046 controls (dev300): an equal-length adjacent skill (true geolocation tips, no procedure) scores
 0.633 (-0.037 vs no skill, real) and a garbage skill 0.654 (no real change). So skills are kept only
 if they beat both controls; the playbook's gain is the procedure itself.
+
+**D-047 Pre-registered test of `playbook_v1`** (written before the run, 2026-11-13).
+Set: val non-junk minus dev300 (`not-dev300`, 1,694 photos), never looked at while writing the
+playbook. Arms: harness v1 without skill vs with `playbook_v1`, same settings as dev300.
+**Pass** = geo_shaped gain >= +0.03 AND the paired-bootstrap 95% interval excludes 0.
+Also reported, not part of pass/fail: in_radius, year exact, new-uploader geo_shaped, vs knn10.
+D-047 result (2026-11-13): **pass**. +0.0615 geo_shaped [+0.049, +0.074] on not-dev300; agent 0.735
+vs knn10 0.748 on the same photos (-0.013, real). `playbook_v1` is adopted as the harness default
+for further layers; beating kNN is left to later layers and fine-tuning.
+
+D-047 addendum (2026-11-14), check 4: a reworded playbook (`playbook_v1_para`, 0.721) and three
+temperature-0.7 seeds (0.723 / 0.709 / 0.710) all beat no skill (+0.039 to +0.052, each real).
+The effect is the rules, not the exact wording or one lucky decode; its honest size under sampling
+is about +0.045, below the greedy +0.066. Kept temperature 0 as the default (best and reproducible).
+
+## D-048: Im2GPS3k as an out-of-distribution check (2026-11-14)
+
+What: ran kNN, the model alone and the playbook agent on Im2GPS3k (Flickr, location only), keeping
+the OSV-5M train index. Agent on a frozen 500-photo subset (dev500, seed 0) to save ~4 h.
+Why: on OSV-5M kNN beat everything; test whether that holds off street view.
+Result: model alone 0.601 > agent+playbook 0.536 > kNN-10 0.445 (all gaps real). kNN's OSV-5M lead
+is domain-specific. playbook_v1 is tuned to OSV-5M: its "trust the neighbors" rule costs -0.067 here.
+Implication: the next skill or layer must judge whether the neighbors are trustworthy (e.g. top
+similarity, agreement, photo type) instead of always deferring to them.
+Alternatives: full 2,997-photo agent run (only if a final number is needed); YFCC4k as a second
+OOD set; adding a Flickr reference index (would change what the agent can retrieve).

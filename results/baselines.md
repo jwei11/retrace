@@ -76,3 +76,51 @@ Same harness, same length (~150 words) appended to the prompt:
 - Correct domain knowledge **hurts**: the model leans on generic visual rules (e.g. guesses from
   road-line colors) instead of the neighbors, and calls `similar` less (187 vs 302 times).
 - Latency varies run to run (18-43 s/photo) with the same settings; not a reliable cost signal yet.
+
+### Held-out confirmation (D-047, pre-registered): **PASS**
+
+1,694 val photos not in dev300 (never looked at while writing the playbook):
+
+| Run | geo_shaped | median km | acc@200 | in_radius | year exact | new-uploader | tokens/ep |
+|---|---|---|---|---|---|---|---|
+| Harness v1, no skill | 0.674 | | | | 12.7% | | |
+| + playbook_v1 | **0.735** | 298 | 39.7% | 0.43 | 34.8% | 0.683 | 8,631 |
+| kNN-10 (same photos) | 0.748 | | | | 42.1% | | 0 |
+
+- Gain +0.0615 [+0.049, +0.074]: passes the bar (>= +0.03, interval excludes 0). Every location and
+  time metric improves (real). The dev300 estimate (+0.066) held up.
+- Still **below kNN** on held-out (-0.013, real) and on year (-7 pts, real); new uploaders tie kNN
+  (0.683 vs 0.683 on full val). The playbook brings the agent up to kNN, not past it.
+
+### Robustness: wording and sampling (check 4, dev300)
+
+| Arm | geo_shaped | year exact | vs no skill (0.670) | vs playbook_v1 (0.736) |
+|---|---|---|---|---|
+| `playbook_v1_para` (same rules, reworded and reordered) | 0.721 | 24.9% | +0.051 real | -0.016 luck |
+| `playbook_v1`, temperature 0.7, seed 0 | 0.723 | 33.0% | +0.052 real | -0.014 luck |
+| `playbook_v1`, temperature 0.7, seed 1 | 0.709 | 27.9% | +0.039 real | -0.027 real |
+| `playbook_v1`, temperature 0.7, seed 2 | 0.710 | 32.0% | +0.040 real | -0.027 real |
+
+- Every arm beats no skill (real), so the gain survives rewording and sampling noise.
+- The size is +0.04 to +0.05 under sampling; the greedy dev300 run (+0.066) was at the lucky end.
+  Greedy decoding (temperature 0) stays the default: it scores best and is reproducible.
+- Seed 2 used `view` much more (574 calls vs 63-255) and took 5.3 steps; same score as seed 1.
+
+## Out-of-distribution check: Im2GPS3k (D-048)
+
+2,997 Flickr photos (tourist, landmark, indoor), location only (no timestamps). None of the 198
+authors are in our training set. kNN's reference index is still OSV-5M train (street view).
+
+| Run | photos | geo_shaped | median km | acc@25 | acc@200 | acc@750 | acc@2500 |
+|---|---|---|---|---|---|---|---|
+| kNN-1 | 2,997 | 0.418 | 1,366 | 7.0% | 16.1% | 36.2% | 61.2% |
+| kNN-10 | 2,997 | 0.445 | 1,184 | 9.1% | 18.7% | 39.3% | 63.3% |
+| Model alone (Qwen3-VL-2B) | 2,997 | **0.601** | 462 | 21.9% | 36.2% | 58.3% | 75.8% |
+| Agent + playbook_v1 | 500 (dev500) | 0.536 | 760 | 20.2% | 31.6% | 49.6% | 71.0% |
+
+Paired on the same photos: model alone beats kNN-10 by +0.156 (real, full set); on dev500 the
+agent beats kNN-10 by +0.096 (real) but loses to the model alone by -0.067 (real).
+
+- kNN's lead on OSV-5M was the index matching the test photos' kind, not general skill.
+- The playbook ("trust agreeing neighbors") hurts when the neighbors are the wrong kind of photo:
+  the agent drifts from its own better guess toward street-view lookalikes.
