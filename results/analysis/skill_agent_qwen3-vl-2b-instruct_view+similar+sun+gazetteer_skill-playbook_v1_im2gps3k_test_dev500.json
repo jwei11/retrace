@@ -1,0 +1,58 @@
+{
+  "run_id": "agent_qwen3-vl-2b-instruct_view+similar+sun+gazetteer_skill-playbook_v1_im2gps3k_test_dev500",
+  "n": 500,
+  "copy_classes": {
+    "copy#1": {
+      "n": 168,
+      "agent": 0.4762,
+      "knn10": 0.4592,
+      "share": 0.336
+    },
+    "copy-other": {
+      "n": 99,
+      "agent": 0.6102,
+      "knn10": 0.4014,
+      "share": 0.198
+    },
+    "near": {
+      "n": 113,
+      "agent": 0.4363,
+      "knn10": 0.4044,
+      "share": 0.226
+    },
+    "no-similar": {
+      "n": 66,
+      "agent": 0.7952,
+      "knn10": 0.6378,
+      "share": 0.132
+    },
+    "own": {
+      "n": 54,
+      "agent": 0.4744,
+      "knn10": 0.284,
+      "share": 0.108
+    }
+  },
+  "compliance": {
+    "similar_first": 0.584,
+    "called_similar": 0.868,
+    "gazetteer_calls_per_photo": 1.302,
+    "gazetteer_no_match_share": 0.4055299539170507,
+    "gazetteer_name_from_neighbors_share": 0.5391705069124424,
+    "median_radius_over_spread": 0.10957834646461942
+  },
+  "geo_shaped_by_similar_first": {
+    "false": {
+      "size": 208,
+      "mean": 0.7125449567136216
+    },
+    "true": {
+      "size": 292,
+      "mean": 0.40965419828868777
+    }
+  },
+  "agent_vs_knn10_overall": [
+    0.5356567537934602,
+    0.44003691082280527
+  ]
+}

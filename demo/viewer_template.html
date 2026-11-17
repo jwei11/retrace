@@ -1,0 +1,200 @@
+<title>Retrace Trajectory Viewer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600&display=swap">
+<style>
+/* Layout: inspector. Episode rail on the left, photo + map evidence on top, the step-by-step trace below. */
+:root {
+  --bg: #f3f5f4; --panel: #ffffff; --fg: #17201d; --muted: #5d6b66; --line: #d9e0dd;
+  --sea: #e6eeee; --land: #cfd9d5; --border-land: #b9c6c1;
+  --guess: #1f5fbf; --truth: #0f8a5f; --nb: #c47a10; --bad: #b3261e; --chip: #edf1ef;
+  --sans: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+  --head: "IBM Plex Sans Condensed", "IBM Plex Sans", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #111614; --panel: #18201d; --fg: #e3ebe7; --muted: #93a39c; --line: #2a3531;
+  --sea: #142024; --land: #2a3733; --border-land: #3a4a45;
+  --guess: #6fa3ff; --truth: #3fcf93; --nb: #f0a73a; --bad: #ff7b72; --chip: #222c29; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #111614; --panel: #18201d; --fg: #e3ebe7; --muted: #93a39c; --line: #2a3531;
+  --sea: #142024; --land: #2a3733; --border-land: #3a4a45;
+  --guess: #6fa3ff; --truth: #3fcf93; --nb: #f0a73a; --bad: #ff7b72; --chip: #222c29; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font: 14px/1.5 var(--sans); }
+.wrap { max-width: 1280px; margin: 0 auto; padding-block: 20px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1 { font: 600 26px/1.15 var(--head); letter-spacing: .01em; margin: 0; text-wrap: balance; }
+.lede { color: var(--muted); max-width: 70ch; margin: 6px 0 0; }
+.label { font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+header { display: grid; gap: 14px; margin-bottom: 18px; }
+.agg { overflow-x: auto; }
+.agg table { border-collapse: collapse; font-variant-numeric: tabular-nums; min-width: 520px; }
+.agg th, .agg td { text-align: right; padding: 6px 14px 6px 0; border-bottom: 1px solid var(--line); }
+.agg th:first-child, .agg td:first-child { text-align: left; }
+.agg th { font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.main { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 20px; align-items: start; }
+.rail { display: grid; gap: 6px; position: sticky; top: env(safe-area-inset-top, 0px); max-height: 100vh; overflow-y: auto; padding-right: 4px; }
+.ep { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 8px; padding: 6px; border: 1px solid transparent;
+  border-radius: 6px; background: none; color: inherit; text-align: left; cursor: pointer; font: inherit; }
+.ep:hover { background: var(--panel); }
+.ep[aria-current="true"] { background: var(--panel); border-color: var(--guess); }
+.ep:focus-visible, button:focus-visible { outline: 2px solid var(--guess); outline-offset: 2px; }
+.ep img { width: 56px; height: 40px; object-fit: cover; border-radius: 3px; }
+.ep .why { font: 500 10px var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.ep .sc { font: 12px var(--mono); display: flex; gap: 6px; flex-wrap: wrap; }
+.group { margin-top: 8px; }
+.detail { display: grid; gap: 16px; min-width: 0; }
+.evidence { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; min-width: 0; }
+.photo img { width: 100%; border-radius: 4px; display: block; }
+.truth { margin-top: 8px; display: grid; gap: 2px; }
+svg.map { width: 100%; height: auto; display: block; background: var(--sea); border-radius: 4px; }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; font-size: 12px; color: var(--muted); }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tab { border: 1px solid var(--line); background: var(--panel); color: var(--fg); border-radius: 999px; padding: 6px 12px;
+  font: 500 13px var(--sans); cursor: pointer; display: inline-flex; gap: 8px; align-items: baseline; }
+.tab[aria-selected="true"] { border-color: var(--guess); box-shadow: inset 0 0 0 1px var(--guess); }
+.tab .mono { font-size: 12px; color: var(--muted); }
+.result { display: flex; gap: 18px; flex-wrap: wrap; align-items: baseline; }
+.result b { font: 600 20px var(--head); }
+.steps { display: grid; gap: 10px; }
+.step { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 10px; }
+.num { font: 500 12px var(--mono); color: var(--muted); padding-top: 3px; text-align: right; }
+.step .body { border-left: 2px solid var(--line); padding-left: 12px; display: grid; gap: 6px; min-width: 0; }
+.step.answer .body { border-left-color: var(--guess); }
+.toolrow { display: flex; gap: 8px; flex-wrap: wrap; align-items: baseline; }
+.tool { font: 500 12px var(--mono); background: var(--chip); padding: 1px 8px; border-radius: 4px; }
+.tool.answer { background: var(--guess); color: var(--panel); }
+.args { font: 12px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+.thought { margin: 0; max-width: 80ch; }
+pre.obs { margin: 0; font: 12px/1.45 var(--mono); background: var(--chip); padding: 8px 10px; border-radius: 4px;
+  overflow-x: auto; white-space: pre; }
+pre.obs .sum { color: var(--nb); }
+.meta { font: 11px var(--mono); color: var(--muted); }
+.good { color: var(--truth); } .poor { color: var(--bad); }
+footer { margin-top: 28px; color: var(--muted); font-size: 12px; max-width: 90ch; }
+@media (max-width: 860px) {
+  .main { grid-template-columns: minmax(0, 1fr); }
+  .rail { position: static; max-height: none; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+  .group { grid-column: 1 / -1; }
+  .evidence { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: no-preference) { .ep, .tab { transition: background .15s, border-color .15s; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="label">Retrace · agent harness · OSV-5M val dev300</div>
+      <h1>Where was this photo taken? Watch the agent work it out.</h1>
+      <p class="lede">A 2B vision-language model (Qwen3-VL-2B) gets a photo with all metadata removed and up to 6 turns of
+        tools: <span class="mono">view</span> (zoom), <span class="mono">similar</span> (10 nearest labelled photos by
+        SigLIP2 embedding), <span class="mono">sun</span>, <span class="mono">gazetteer</span>, then
+        <span class="mono">answer</span>. Each photo below is shown under three harness configurations.</p>
+    </div>
+    <div class="agg card" id="agg"></div>
+  </header>
+  <div class="main">
+    <nav class="rail" id="rail" aria-label="Episodes"></nav>
+    <section class="detail" id="detail"></section>
+  </div>
+  <footer>Score is geo_shaped (0 to 1, higher is better; distance-based). Episodes were chosen to show where the
+    configurations differ most, plus five random ones, leaving out photos where any configuration failed to answer
+    and photos whose camera overlay prints the date, time or GPS into the image. The table above is the average over
+    all photos.
+    Photos: OSV-5M (Mapillary contributors, CC BY-SA 4.0), sanitized. Ground truth is shown here but is never visible
+    to the agent.</footer>
+</div>
+
+<script>
+const D = /*DATA*/;
+const ARMS = D.arms;
+let cur = 0, arm = ARMS[1];
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const cls = v => v >= 0.75 ? "good" : v < 0.4 ? "poor" : "";
+
+function renderAgg() {
+  const rows = ARMS.map(a => { const g = D.agg[a];
+    return `<tr><td>${esc(a)}</td><td>${g.geo_shaped.toFixed(3)}</td><td>${g.median_km}</td><td>${(g.acc200 * 100).toFixed(1)}%</td><td>${g.tokens.toLocaleString()}</td></tr>`; });
+  $("#agg").innerHTML = `<div class="label" style="margin-bottom:6px">Averages over all ${D.n} photos</div>
+    <table><thead><tr><th>Configuration</th><th>Score</th><th>Median km</th><th>Within 200 km</th><th>Tokens / photo</th></tr></thead>
+    <tbody>${rows.join("")}</tbody></table>`;
+}
+
+function renderRail() {
+  let last = "", html = "";
+  D.episodes.forEach((e, i) => {
+    if (e.why !== last) { html += `<div class="label group">${esc(e.why)}</div>`; last = e.why; }
+    const sc = ARMS.map(a => `<span class="${cls(e.arms[a].score)}">${e.arms[a].score.toFixed(2)}</span>`).join("");
+    html += `<button class="ep" data-i="${i}" aria-current="${i === cur}"><img src="${e.img}" alt="">
+      <span><span class="why">${esc(e.truth.place.split(", ").slice(-1)[0] || e.id)}</span><span class="sc">${sc}</span></span></button>`;
+  });
+  $("#rail").innerHTML = html;
+  $("#rail").querySelectorAll(".ep").forEach(b => b.onclick = () => { cur = +b.dataset.i; render(); });
+}
+
+function mapSvg(e, a) {
+  const r = e.arms[a], ans = r.steps.find(s => s.tool === "answer"), nb = (r.steps.find(s => s.nb) || {}).nb || [];
+  const pts = [[e.truth.lat, e.truth.lon], ...nb];
+  if (ans) pts.push([ans.args.lat, ans.args.lon]);
+  let x0 = Math.min(...pts.map(p => p[1])), x1 = Math.max(...pts.map(p => p[1]));
+  let y0 = Math.min(...pts.map(p => -p[0])), y1 = Math.max(...pts.map(p => -p[0]));
+  let w = Math.max(x1 - x0, 12), h = Math.max(y1 - y0, 8);
+  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  w *= 1.35; h *= 1.35; if (w / h < 1.6) w = h * 1.6; else h = w / 1.6;
+  const vb = [cx - w / 2, cy - h / 2, w, h], u = w / 300;
+  let s = `<svg class="map" viewBox="${vb.join(" ")}" role="img" aria-label="Map of guess, truth and lookalikes">`;
+  s += `<g fill="var(--land)" stroke="var(--border-land)" stroke-width="${u * 0.6}">${D.world.map(d => `<path d="${d}"/>`).join("")}</g>`;
+  if (ans) {
+    const ry = ans.args.radius_km / 111, rx = ry / Math.max(Math.cos(ans.args.lat * Math.PI / 180), 0.2);
+    s += `<ellipse cx="${ans.args.lon}" cy="${-ans.args.lat}" rx="${rx}" ry="${ry}" fill="var(--guess)" fill-opacity=".12" stroke="var(--guess)" stroke-width="${u}" stroke-dasharray="${u * 3} ${u * 2}"/>`;
+    s += `<line x1="${ans.args.lon}" y1="${-ans.args.lat}" x2="${e.truth.lon}" y2="${-e.truth.lat}" stroke="var(--muted)" stroke-width="${u * 0.8}" stroke-dasharray="${u * 2} ${u * 2}"/>`;
+  }
+  nb.forEach(p => s += `<circle cx="${p[1]}" cy="${-p[0]}" r="${u * 2.4}" fill="var(--nb)" fill-opacity=".85"/>`);
+  if (ans) s += `<circle cx="${ans.args.lon}" cy="${-ans.args.lat}" r="${u * 3.6}" fill="var(--guess)" stroke="var(--panel)" stroke-width="${u}"/>`;
+  const t = [e.truth.lon, -e.truth.lat], k = u * 5;
+  s += `<path d="M${t[0] - k} ${t[1] - k}L${t[0] + k} ${t[1] + k}M${t[0] + k} ${t[1] - k}L${t[0] - k} ${t[1] + k}" stroke="var(--truth)" stroke-width="${u * 1.8}" stroke-linecap="round"/>`;
+  return s + `</svg>`;
+}
+
+function obsHtml(o) {
+  return esc(o).split("\n").map(l => l.startsWith("summary:") ? `<span class="sum">${l}</span>` : l).join("\n");
+}
+
+function renderDetail() {
+  const e = D.episodes[cur], r = e.arms[arm];
+  const tabs = ARMS.map(a => `<button class="tab" role="tab" aria-selected="${a === arm}" data-a="${esc(a)}">${esc(a)}
+    <span class="mono ${cls(e.arms[a].score)}">${e.arms[a].score.toFixed(2)}</span></button>`).join("");
+  const steps = r.steps.map((s, i) => `<div class="step ${s.tool === "answer" ? "answer" : ""}"><div class="num">${i + 1}</div><div class="body">
+      <div class="toolrow"><span class="tool ${s.tool === "answer" ? "answer" : ""}">${esc(s.tool)}</span>
+        <span class="args">${esc(JSON.stringify(s.args))}</span></div>
+      <p class="thought">${esc(s.thought)}</p>
+      ${s.obs ? `<pre class="obs">${obsHtml(s.obs)}</pre>` : ""}
+      <div class="meta">${s.tok ? s.tok.toLocaleString() + " prompt tokens" : ""}${s.lat_s ? " · " + s.lat_s.toFixed(1) + " s" : ""}</div>
+    </div></div>`).join("");
+  $("#detail").innerHTML = `
+    <div class="evidence">
+      <div class="card photo"><img src="${e.img}" alt="Street-level photo given to the agent">
+        <div class="truth"><span class="label">Ground truth (hidden from the agent)</span>
+          <span>${esc(e.truth.place)} <span class="mono">${e.truth.lat.toFixed(3)}, ${e.truth.lon.toFixed(3)}</span></span>
+          ${e.truth.date ? `<span class="mono">${esc(e.truth.date)}</span>` : ""}</div></div>
+      <div class="card">${mapSvg(e, arm)}
+        <div class="legend"><span><i class="dot" style="background:var(--truth)"></i>truth</span>
+          <span><i class="dot" style="background:var(--guess)"></i>answer + radius</span>
+          <span><i class="dot" style="background:var(--nb)"></i>lookalikes from similar</span></div></div>
+    </div>
+    <div class="tabs" role="tablist">${tabs}</div>
+    <div class="result"><span><span class="label">Score</span> <b class="${cls(r.score)}">${r.score.toFixed(2)}</b></span>
+      <span><span class="label">Error</span> <b>${Math.round(r.km).toLocaleString()} km</b></span>
+      <span><span class="label">Truth inside radius</span> <b>${r.in_radius ? "yes" : "no"}</b></span>
+      <span><span class="label">Turns</span> <b>${r.steps.length}</b></span>
+      <span><span class="label">Answer vs lookalikes</span> <b>${esc(r.copy)}</b></span></div>
+    <div class="steps">${steps}</div>`;
+  $("#detail").querySelectorAll(".tab").forEach(b => b.onclick = () => { arm = b.dataset.a; renderDetail(); });
+}
+
+function render() { renderRail(); renderDetail(); }
+renderAgg(); render();
+</script>

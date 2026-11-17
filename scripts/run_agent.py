@@ -50,10 +50,14 @@ def main() -> None:
 
     names = [] if args.tools == "none" else args.tools.split(",")
     placebo = set(names) if args.placebo == "all" else {p for p in args.placebo.split(",") if p}
+    if placebo - set(names):
+        ap.error(f"--placebo names not in --tools: {sorted(placebo - set(names))}")
     t = time.time()
     tools = [FACTORIES[n]() for n in names]
     print(f"tools loaded in {time.time() - t:.1f}s: {names}", flush=True)
-    reg = Registry(tools, [Trace(), Fault(args.fault_rate), Cache(), Placebo(placebo)])
+    # middleware matches Tool.name, which can differ from the factory key (similar_sum -> "similar")
+    placebo_tools = {tool.name for n, tool in zip(names, tools) if n in placebo}
+    reg = Registry(tools, [Trace(), Fault(args.fault_rate), Cache(), Placebo(placebo_tools)])
     model = ChatModel(temperature=args.temperature, seed=args.seed)
 
     m = pd.read_parquet(DATA / "manifests" / f"{args.dataset}_{args.split}_sanitized.parquet")
@@ -80,6 +84,8 @@ def main() -> None:
         tag += f"_skill-{args.skill}"
     if args.temperature:
         tag += f"_t{args.temperature:g}-s{args.seed}"
+    elif args.seed:   # greedy runs with a non-default seed must not overwrite the seed-0 run
+        tag += f"_s{args.seed}"
     if placebo:
         tag += "_placebo-" + ("all" if placebo == set(names) else "+".join(sorted(placebo)))
     ds = "" if args.dataset == "osv5m" else f"{args.dataset}_"

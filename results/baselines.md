@@ -124,3 +124,59 @@ agent beats kNN-10 by +0.096 (real) but loses to the model alone by -0.067 (real
 - kNN's lead on OSV-5M was the index matching the test photos' kind, not general skill.
 - The playbook ("trust agreeing neighbors") hurts when the neighbors are the wrong kind of photo:
   the agent drifts from its own better guess toward street-view lookalikes.
+
+## playbook_v2 and the similar() agreement line (D-050, dev sets)
+
+| Arm | OSV dev300 | vs v1 | Im2GPS3k dev500 | vs model alone (0.603) | s/photo (Im2GPS3k) |
+|---|---|---|---|---|---|
+| playbook_v1 | 0.736 | | 0.536 | -0.067 real | 5.6 |
+| playbook_v2 | 0.712 | -0.025 real | 0.548 | -0.054 real | 4.6 |
+| playbook_v2 + `similar_sum` | 0.706 | -0.031 real | **0.578** | -0.025 luck | 15.3 |
+| playbook_v1 + `similar_sum` | 0.721 | -0.015 luck | not run | | |
+
+- The agreement line is the part that works: +0.029 real on Im2GPS3k (v2 vs v2+sum), no effect on OSV
+  (-0.006 luck). Its cost: the Im2GPS3k run was 3x slower (cause not yet checked).
+- The v2 text costs ~0.025 on street view: "own guess first" makes the agent go its own way more
+  often there (14% of photos, scoring 0.56 vs kNN's 0.72 on them).
+- Compliance is still partial: 43-68% of gazetteer names still come from the neighbor list.
+- Not run on held-out: neither arm meets D-050 on dev (both lose >0.02 to v1 on OSV).
+- v1 + `similar_sum` (2026-11-16, OSV only): 0.721, -0.015 vs v1 [-0.037, +0.005], still +0.051 real
+  vs no skill. acc@750 drops 4.7 points (real). The Im2GPS3k half did not run (server stopped).
+  Its OSV lower bound (-0.037) already misses the D-050 bar (>= -0.02), so it is not sent to held-out.
+
+## Burned-in overlay audit (D-051, LEAKAGE.md L-15/L-16)
+
+`scripts/audit_overlays.py`: OCR of the top and bottom bands of every photo, regexes for dates,
+clock times and coordinates. All 88 flagged OSV val texts were read by eye: every one is a real
+camera overlay (dashcam timestamps, GPS readouts, road-log captions with town names such as
+"BRATTLEBORO"). Recall is not measured (small or stylized overlays can be missed).
+
+| Set | Photos | Leak (date, time or GPS printed) | Any overlay |
+|---|---|---|---|
+| OSV-5M val | 2,000 | 77 (3.9%) | 88 (4.4%) |
+| Im2GPS3k | 2,997 | 5 (0.2%; film date stamps, no time labels there) | 5 |
+
+Impact on dev300 (14 leak photos) and held-out not-dev300 (63):
+
+| Run | geo all | geo clean | year exact all | year exact clean | year exact on leak photos |
+|---|---|---|---|---|---|
+| kNN-10 | 0.733 | 0.722 | 40.1% | 39.6% | 50.0% |
+| Model alone | 0.650 | 0.642 | 5.1% | **1.1%** | 80.0% |
+| Agent, no skill | 0.670 | 0.665 | 14.7% | 11.2% | 80.0% |
+| Agent + playbook_v1 | 0.736 | 0.734 | 29.6% | 27.3% | 77.8% |
+| playbook_v1, held-out | 0.735 | 0.732 | 34.8% | 32.6% | 91.1% |
+
+Paired differences, all photos vs leak photos removed:
+
+| Comparison | All | Clean |
+|---|---|---|
+| playbook_v1 − no skill (dev300) | +0.066 [+0.037, +0.095] | +0.068 [+0.037, +0.100] |
+| no skill − placebo (dev300) | +0.169 | +0.174 |
+| playbook_v1 − kNN-10 (held-out) | −0.013 [−0.023, −0.002] | −0.011 [−0.022, −0.001] |
+| playbook_v1 − model alone (held-out) | +0.056 | +0.054 |
+
+- **Location conclusions are unchanged** (every difference moves by ≤0.003 and keeps its verdict).
+- **Time is where the leak matters:** the model alone's year accuracy is almost all overlays (5.1% →
+  1.1% clean). The agent's year gains hold on clean photos (no skill 11.2% → playbook 27.3%).
+- kNN also scores high on overlay photos (0.939) without reading text: overlay photos come from a few
+  heavy contributors with distinctive cameras, so lookalikes are often the same uploader's photos.

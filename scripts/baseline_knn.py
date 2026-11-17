@@ -115,6 +115,8 @@ def run(split: str, dataset: str = "osv5m", k: int = 10, vote_km: float = 25.0) 
 
 if __name__ == "__main__":
     if sys.argv[1] == "embed":
-        embed(sys.argv[2], sys.argv[3:]) if len(sys.argv) > 2 else embed()
+        if len(sys.argv) == 3:
+            sys.exit("embed <dataset> needs split names, e.g. embed im2gps3k test")
+        embed(sys.argv[2], sys.argv[3:]) if len(sys.argv) > 3 else embed()
     else:
         run(sys.argv[2], *sys.argv[3:4])

@@ -1,0 +1,152 @@
+{
+  "run": {
+    "run_id": "agent_qwen3-vl-2b-instruct_view+similar_sum+sun+gazetteer_skill-playbook_v2_im2gps3k_test_dev500",
+    "dataset": "im2gps3k",
+    "split": "test",
+    "subset": "dev500",
+    "model": "Qwen/Qwen3-VL-2B-Instruct",
+    "config": {
+      "runtime": "vllm 0.33.0 fp16",
+      "tools": [
+        "view",
+        "similar_sum",
+        "sun",
+        "gazetteer"
+      ],
+      "placebo": [],
+      "fault_rate": 0.0,
+      "skill": "playbook_v2",
+      "max_steps": 6,
+      "max_images": 4,
+      "temperature": 0.0,
+      "seed": 0,
+      "max_tokens_per_turn": 400,
+      "action_format": "schema-forced JSON",
+      "concurrency": 4
+    },
+    "notes": "agent loop (M5). wall 7633s for 500 photos, 0 errors"
+  },
+  "micro": {
+    "n": 500,
+    "valid_frac": 1.0,
+    "median_km": 607.8771307988197,
+    "acc@1": 0.042,
+    "acc@25": 0.224,
+    "acc@200": 0.332,
+    "acc@750": 0.548,
+    "acc@2500": 0.754,
+    "geo_shaped": 0.5775636495382347,
+    "geo_nll": 1302165.7481799803,
+    "in_radius": 0.382,
+    "n_time": 0
+  },
+  "macro_by_stratum": {
+    "median_km": 2014.5433960976522,
+    "geo_shaped": 0.5217546672180778,
+    "acc@1": 0.03099661339097959,
+    "acc@25": 0.15204364658590014,
+    "acc@200": 0.23460837122808953,
+    "acc@750": 0.48571124627462653,
+    "acc@2500": 0.7263833320171349,
+    "n_strata": 71
+  },
+  "calibrated_coverage_target": 0.3934693402873666,
+  "answer_rate": 1.0,
+  "n_errors": 0,
+  "uploader": {
+    "seen": null,
+    "new": {
+      "n": 500,
+      "valid_frac": 1.0,
+      "median_km": 607.8771307988197,
+      "acc@1": 0.042,
+      "acc@25": 0.224,
+      "acc@200": 0.332,
+      "acc@750": 0.548,
+      "acc@2500": 0.754,
+      "geo_shaped": 0.5775636495382347,
+      "geo_nll": 1302165.7481799803,
+      "in_radius": 0.382,
+      "n_time": 0
+    },
+    "seen_frac": 0.0
+  },
+  "cost": {
+    "mean_tokens_in": 7625.384,
+    "mean_tokens_out": 534.324,
+    "total_tokens": 4079854,
+    "mean_latency_s": 60.866966,
+    "p95_latency_s": 226.15739999999997
+  },
+  "vs": {
+    "run_id": "agent_qwen3-vl-2b-instruct_view+similar+sun+gazetteer_skill-playbook_v2_im2gps3k_test_dev500",
+    "metrics": {
+      "geo_shaped": {
+        "a": 0.5775636495382347,
+        "b": 0.5483573879641394,
+        "diff": 0.029206261574095338,
+        "ci95": [
+          0.010184295080174812,
+          0.04798509966723665
+        ],
+        "significant": true,
+        "n": 500
+      },
+      "acc@25": {
+        "a": 0.224,
+        "b": 0.216,
+        "diff": 0.008000000000000007,
+        "ci95": [
+          -0.008000000000000007,
+          0.026000000000000023
+        ],
+        "significant": false,
+        "n": 500
+      },
+      "acc@200": {
+        "a": 0.332,
+        "b": 0.328,
+        "diff": 0.0040000000000000036,
+        "ci95": [
+          -0.019999999999999962,
+          0.026000000000000023
+        ],
+        "significant": false,
+        "n": 500
+      },
+      "acc@750": {
+        "a": 0.548,
+        "b": 0.516,
+        "diff": 0.03200000000000003,
+        "ci95": [
+          0.008000000000000007,
+          0.05799999999999994
+        ],
+        "significant": true,
+        "n": 500
+      },
+      "acc@2500": {
+        "a": 0.754,
+        "b": 0.714,
+        "diff": 0.040000000000000036,
+        "ci95": [
+          0.014000000000000012,
+          0.06800000000000006
+        ],
+        "significant": true,
+        "n": 500
+      },
+      "median_km": {
+        "a": 607.8771307988197,
+        "b": 712.3342334340621,
+        "diff": -104.45710263524234,
+        "ci95": [
+          -207.1234910474838,
+          -27.94826499247031
+        ],
+        "significant": true,
+        "n": 500
+      }
+    }
+  }
+}

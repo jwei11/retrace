@@ -236,3 +236,55 @@ Implication: the next skill or layer must judge whether the neighbors are trustw
 similarity, agreement, photo type) instead of always deferring to them.
 Alternatives: full 2,997-photo agent run (only if a final number is needed); YFCC4k as a second
 OOD set; adding a Flickr reference index (would change what the agent can retrieve).
+
+## D-049: No frontier/API model baseline (2026-11-15)
+
+What: M6 baseline #5 (API frontier VLM) is dropped; all models run locally.
+Why: user decision. Keeps the project self-contained and cost-free, and removes any path for data to
+leave the machine. Alternatives: an API baseline on public photos only (rejected by user).
+
+## D-050: playbook_v2 and the similar() agreement summary (2026-11-15, pre-registered)
+
+What: (1) `skills/playbook_v2.md`: own guess first (anti-anchoring), a 3-band trust table keyed on
+neighbor agreement and similarity, radius from the band, gazetteer only on text read in the photo.
+(2) `similar_sum`: the same `similar` tool plus one computed line: size of the densest group of
+neighbors within 300 km of each other, its median spread, and a LOW flag when top similarity < 0.80.
+Why: on Im2GPS3k, playbook_v1 lost -0.067 to the model alone. Neighbor agreement predicts kNN
+accuracy on both datasets (within 50 km: 88% / 73% of nn1 within 200 km; over 1,000 km: 17% / 8%),
+but the 2B model cannot compute it (radius/spread 0.11; copied #1 on 34% of photos). Top similarity
+separates the datasets (median 0.905 vs 0.701). Thresholds 300 km and 0.80 were set from OSV val
+statistics. Im2GPS3k statistics have been looked at, so Im2GPS3k dev500 is a dev set from now on.
+Dev arms: v2 and v2+similar_sum, each on OSV dev300 and Im2GPS3k dev500 (temperature 0).
+Held-out pass/fail for the chosen arm (run after dev, not looked at before):
+  OSV not-dev300: vs playbook_v1, 95% interval lower bound >= -0.02 (no real loss on street view);
+  Im2GPS3k not-dev500 (2,497 photos): vs model alone, lower bound >= -0.02 (no longer hurts).
+  Both must hold. Also reported: vs kNN-10, in_radius, tokens.
+Alternatives: scene-type rule ("is it a street scene?", judged by the model; less reliable); a
+fixed similarity cutoff only (does not predict accuracy within a dataset); G3-style candidates
+plus verification (later layer).
+D-050 dev result (2026-11-15): neither v2 arm is sent to held-out. The agreement line helps on
+Im2GPS3k (+0.029, real) and is neutral on OSV; the v2 text loses ~0.025 on OSV. Next candidate:
+playbook_v1 text + `similar_sum` (the untested cell), possibly with one added rule for the LOW flag.
+v1 + similar_sum (2026-11-16, OSV dev300): 0.721, -0.015 vs v1 [-0.037, +0.005]. The lower bound misses
+the -0.02 bar, so no held-out run. Im2GPS3k dev500 for this arm not run. Conclusion: on street view the
+line adds nothing and v1 stays the shipped skill; the line's value is out of distribution only.
+
+## D-051: Burned-in camera overlays leak labels through pixels (2026-11-16; LEAKAGE.md L-15/L-16, now measured)
+
+What: some OSV-5M dashcam photos have an overlay that prints the capture date/time, sometimes GPS
+coordinates and an uploader handle, into the image (e.g. "MiVue 788 2019/06/21 15:32", "W80.989250
+N35.046212 NETWORKLANMAN"). Sanitizing strips file metadata, not pixels. Trajectories show the agent
+reads these timestamps ("the timestamp in the image is 2019-06-21 15:32:17"); no case of it reading
+the GPS text was seen.
+Impact: time metrics (and possibly a few location answers) are inflated on these photos for every
+run and baseline that sees pixels; kNN is unaffected by text. Size unknown.
+Done now: the demo excludes such photos by id (scripts/export_demo.py EXCLUDE).
+To do: OCR audit of val/test for overlay text (dates, times, coordinates); then either junk-flag
+them or crop the overlay band, and re-score time metrics with and without them.
+D-051 result (2026-11-16): OCR audit flags 77 of 2,000 OSV val photos (3.9%) as printing a date,
+time or GPS; all 88 flagged texts checked by eye are real overlays (recall not measured). Location
+conclusions are unchanged on clean photos (all paired differences move by <=0.003, same verdicts).
+Time metrics are inflated: model alone year-exact 5.1% -> 1.1% clean. Policy for now: no data
+change (frozen splits stay frozen); report time metrics on clean photos alongside all photos, and
+exclude these photos from demos. Alternatives: junk-flag them (changes dev300/not-dev300 sizes),
+or crop the bands for every photo (also removes legitimate signs near the edges).

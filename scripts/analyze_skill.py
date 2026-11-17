@@ -33,7 +33,10 @@ NB = re.compile(r"\| (-?\d+\.\d+), (-?\d+\.\d+) \|")
 def per_photo(run_id: str) -> pd.DataFrame:
     rd = DATA / "runs" / run_id
     sc = pd.read_parquet(rd / "scores.parquet").set_index("id")
-    knn = pd.read_parquet(DATA / "runs" / "knn10_val" / "scores.parquet").set_index("id")
+    meta = json.loads((rd / "run.json").read_text())
+    ds = "" if meta["dataset"] == "osv5m" else f"{meta['dataset']}_"
+    knn_run = f"knn10_{ds}{meta['split']}"   # kNN on the same dataset and split
+    knn = pd.read_parquet(DATA / "runs" / knn_run / "scores.parquet").set_index("id")
     rows = []
     for line in open(rd / "trajectories.jsonl", encoding="utf-8"):
         t = json.loads(line)
@@ -60,7 +63,7 @@ def per_photo(run_id: str) -> pd.DataFrame:
     df = pd.DataFrame(rows).set_index("id")
     df["geo_shaped"] = sc.geo_shaped
     df["knn10_geo_shaped"] = knn.geo_shaped.reindex(df.index)
-    df["uploader_seen"] = sc.uploader_seen
+    df["uploader_seen"] = sc.uploader_seen if "uploader_seen" in sc else pd.NA   # n/a for other datasets
     return df
 
 

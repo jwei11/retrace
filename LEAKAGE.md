@@ -33,7 +33,7 @@ Update this file whenever a new tool, memory source or data source is added.
 
 | # | Channel | Status | Notes |
 |---|---|---|---|
-| L-15 | Burned-in timestamps (dashcam overlays, camera date stamps) | open | Real visual evidence, but makes time trivial. Need to measure how often it occurs (OCR scan) and decide whether to report a "no overlay" slice. |
+| L-15 | Burned-in timestamps (dashcam overlays, camera date stamps) | measured (D-051: 3.9% of OSV val; time metrics also reported on clean photos) | Real visual evidence, but makes time trivial. Need to measure how often it occurs (OCR scan) and decide whether to report a "no overlay" slice. |
 | L-16 | Watermarks / uploader names in pixels | open | Same treatment as L-15. |
 
 ## Harness (M5, not built yet)

@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 
+from retrace.geo import haversine_km
 from retrace.tools.registry import Ctx, Obs, Tool
 from retrace.tools.sun import solar_position
 
@@ -82,7 +83,35 @@ class _Index:
         return f"sim {sim:.2f} | {place} | {r.lat:.3f}, {r.lon:.3f} | {t}"
 
 
-def similar_tool(emb_dir: Path | None = None) -> Tool:
+AGREE_KM = 300    # neighbors this close to each other count as agreeing (OSV val: nn1 within 200 km 66-88%)
+LOW_SIM = 0.80    # top similarity below this = photo unlike the index (3% of OSV val, set on OSV val only)
+
+
+def _summary(idx: "_Index", rows, sims) -> str:
+    """D-050: the agreement a 2B model cannot compute from coordinates, computed for it."""
+    lat, lon = idx.train.lat.to_numpy()[rows], idx.train.lon.to_numpy()[rows]
+    d = haversine_km(lat[:, None], lon[:, None], lat[None, :], lon[None, :])
+    near = d <= AGREE_KM
+    c = int(np.argmax(near.sum(1)))                   # densest neighbor (ties -> best ranked)
+    members = np.flatnonzero(near[c])
+    others = members[members != c]
+    spread = float(np.median(d[c, others])) if len(others) else 0.0   # median distance to #c, self excluded
+    r = idx.train.iloc[rows[c]]
+    place = ", ".join(str(x) for x in (r.country, r.region) if isinstance(x, str) and x)
+    top = float(sims[0])
+    sim_txt = (f"top similarity {top:.2f} is LOW: your photo is unlike the reference photos, treat them as weak hints"
+               if top < LOW_SIM else f"top similarity {top:.2f} is typical")
+    if len(rows) < 3:
+        agree = f"only {len(rows)} reference(s), too few to judge agreement"
+    elif len(members) < 2:
+        agree = f"the references disagree: no two lie within {AGREE_KM} km of each other"
+    else:
+        agree = (f"{len(members)} of {len(rows)} references lie within {AGREE_KM} km of #{c + 1} ({place}), "
+                 f"spread ~{spread:.0f} km")
+    return f"summary: {agree}; {sim_txt}."
+
+
+def similar_tool(emb_dir: Path | None = None, summary: bool = False) -> Tool:
     idx = _Index(emb_dir or DATA / "embeddings" / "siglip2-so400m")
 
     def ranked(ctx: Ctx, k: int):
@@ -93,8 +122,9 @@ def similar_tool(emb_dir: Path | None = None) -> Tool:
         return nn[np.argsort(-s[nn])], s
 
     def fmt(rows, sims) -> Obs:
-        return Obs("most similar reference photos (lookalikes; often nearby, sometimes misleading):\n" +
-                   "\n".join(f"{j + 1}. " + idx.line(i, v) for j, (i, v) in enumerate(zip(rows, sims))))
+        text = ("most similar reference photos (lookalikes; often nearby, sometimes misleading):\n" +
+                "\n".join(f"{j + 1}. " + idx.line(i, v) for j, (i, v) in enumerate(zip(rows, sims))))
+        return Obs(text + ("\n" + _summary(idx, rows, sims) if summary else ""))
 
     def real(ctx: Ctx, k: int) -> Obs:
         nn, s = ranked(ctx, k)
@@ -189,4 +219,5 @@ def gazetteer_tool(path: Path | None = None) -> Tool:
                 real, placebo, per_photo=False)
 
 
-FACTORIES = {"view": view_tool, "similar": similar_tool, "sun": sun_tool, "gazetteer": gazetteer_tool}
+FACTORIES = {"view": view_tool, "similar": similar_tool, "sun": sun_tool, "gazetteer": gazetteer_tool,
+             "similar_sum": lambda: similar_tool(summary=True)}   # D-050 ablation arm; tool name stays "similar"
