@@ -132,7 +132,8 @@ agent beats kNN-10 by +0.096 (real) but loses to the model alone by -0.067 (real
 | playbook_v1 | 0.736 | | 0.536 | -0.067 real | 5.6 |
 | playbook_v2 | 0.712 | -0.025 real | 0.548 | -0.054 real | 4.6 |
 | playbook_v2 + `similar_sum` | 0.706 | -0.031 real | **0.578** | -0.025 luck | 15.3 |
-| playbook_v1 + `similar_sum` | 0.721 | -0.015 luck | not run | | |
+| playbook_v1 + `similar_sum` | 0.721 | -0.015 luck | 0.550 | -0.053 real | 6.8 |
+| no skill (reference) | 0.670 | -0.066 real | 0.593 | -0.010 luck | 4.0 |
 
 - The agreement line is the part that works: +0.029 real on Im2GPS3k (v2 vs v2+sum), no effect on OSV
   (-0.006 luck). Its cost: the Im2GPS3k run was 3x slower (cause not yet checked).
@@ -141,7 +142,12 @@ agent beats kNN-10 by +0.096 (real) but loses to the model alone by -0.067 (real
 - Compliance is still partial: 43-68% of gazetteer names still come from the neighbor list.
 - Not run on held-out: neither arm meets D-050 on dev (both lose >0.02 to v1 on OSV).
 - v1 + `similar_sum` (2026-11-16, OSV only): 0.721, -0.015 vs v1 [-0.037, +0.005], still +0.051 real
-  vs no skill. acc@750 drops 4.7 points (real). The Im2GPS3k half did not run (server stopped).
+  vs no skill. acc@750 drops 4.7 points (real). Im2GPS3k (2026-11-18): 0.550, +0.015 vs v1 (luck).
+  With v1's text the agreement line helps about half as much as with v2's (+0.029); the agent still
+  calls similar first on 58% of photos, and those score 0.43 vs 0.72.
+- No skill on Im2GPS3k (2026-11-18): 0.593, level with the model alone (-0.010, luck) and +0.057 real
+  over v1. So the tools alone do not hurt out of distribution; the v1 skill does. v1 is a trade-off:
+  +0.066 on street view, -0.057 on Flickr.
   Its OSV lower bound (-0.037) already misses the D-050 bar (>= -0.02), so it is not sent to held-out.
 
 ## Burned-in overlay audit (D-051, LEAKAGE.md L-15/L-16)

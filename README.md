@@ -48,11 +48,11 @@ flowchart LR
 |---|---|---|
 | kNN-10 on SigLIP2 embeddings (no LLM) | 0.733 | 0.440 |
 | Model alone, one look | 0.650 | **0.603** |
-| Agent with tools, no skill | 0.670 | – |
+| Agent with tools, no skill | 0.670 | 0.593 |
 | Agent with placebo tools | 0.501 | – |
 | Agent + `playbook_v1` skill | **0.736** | 0.536 |
 | Agent + `playbook_v2` + agreement line | 0.706 | 0.578 |
-| Agent + `playbook_v1` + agreement line | 0.721 | – |
+| Agent + `playbook_v1` + agreement line | 0.721 | 0.550 |
 
 What the experiments showed:
 
@@ -61,7 +61,9 @@ What the experiments showed:
    (pre-registered pass). A same-length garbage skill does nothing; correct but generic geo tips hurt
    (−0.037). Rewording and sampling seeds keep +0.04 to +0.05.
 3. **Retrieval over-trust out of distribution.** On Flickr photos the street-view index returns wrong
-   lookalikes and the playbook makes the agent copy them (−0.067 vs the model alone).
+   lookalikes and the playbook makes the agent copy them (−0.067 vs the model alone). Without the skill the agent
+   matches the model alone (−0.010), so the skill, not the tools, causes the loss: +0.066 on street
+   view, −0.057 on Flickr.
 4. **Compute the signal; don't ask a 2B model to.** Neighbor agreement predicts whether kNN is right on
    both datasets, but the model cannot work it out from coordinates. Having `similar` print a computed
    agreement line recovers +0.029 on Flickr and is neutral on street view.

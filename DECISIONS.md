@@ -268,6 +268,10 @@ playbook_v1 text + `similar_sum` (the untested cell), possibly with one added ru
 v1 + similar_sum (2026-11-16, OSV dev300): 0.721, -0.015 vs v1 [-0.037, +0.005]. The lower bound misses
 the -0.02 bar, so no held-out run. Im2GPS3k dev500 for this arm not run. Conclusion: on street view the
 line adds nothing and v1 stays the shipped skill; the line's value is out of distribution only.
+Im2GPS3k dev500 (2026-11-18): v1+sum 0.550 (+0.015 vs v1, luck). No-skill agent 0.593 (= model alone,
+-0.010 luck; +0.057 real over v1): the out-of-distribution loss comes from the v1 skill, not the tools.
+Open question for the next skill: gate the playbook on the agreement line (follow it only when the
+references agree) instead of always pointing the agent at similar().
 
 ## D-051: Burned-in camera overlays leak labels through pixels (2026-11-16; LEAKAGE.md L-15/L-16, now measured)
 
