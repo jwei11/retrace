@@ -21,6 +21,7 @@ import pandas as pd
 
 from retrace.env import Env
 from retrace.harness.agent import ChatModel, run_episode
+from retrace.harness.router import choose, parse_route, top_similarity
 from retrace.middleware import Cache, Fault, Placebo, Trace
 from retrace.runs import run_dir, write_run
 from retrace.splits.dev import subset_ids
@@ -43,10 +44,13 @@ def main() -> None:
     ap.add_argument("--max-images", type=int, default=4)
     ap.add_argument("--concurrency", type=int, default=4)
     ap.add_argument("--skill", default="", help="skills/<name>.md appended to the instruction")
+    ap.add_argument("--route", default="", help="skill@threshold: that skill only when top similarity >= threshold (D-052)")
     ap.add_argument("--temperature", type=float, default=0.0)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--tag", default="", help="extra suffix for the run id")
     args = ap.parse_args()
+    if args.route and args.skill:
+        ap.error("use --skill or --route, not both")
 
     names = [] if args.tools == "none" else args.tools.split(",")
     placebo = set(names) if args.placebo == "all" else {p for p in args.placebo.split(",") if p}
@@ -66,12 +70,29 @@ def main() -> None:
         m = m[m.id.isin(subset_ids(args.dataset, args.split, args.subset))]
     if args.limit:
         m = m.head(args.limit)
-    skills = (Path(__file__).resolve().parents[1] / "skills" / f"{args.skill}.md").read_text().strip()         if args.skill else ""
+    def skill_text(name: str) -> str:
+        return (Path(__file__).resolve().parents[1] / "skills" / f"{name}.md").read_text().strip() if name else ""
+
     photos = [Photo(r.id, r.sanitized_path, r.group_id) for r in m.itertuples()]
+    route: dict[str, tuple[str, float]] = {}   # photo id -> (skill, top similarity)
+    if args.route:
+        r_skill, thr = parse_route(args.route)
+        from retrace.tools.builtin import _Index
+        idx = _Index(DATA / "embeddings" / "siglip2-so400m")
+        for p in photos:
+            top = top_similarity(idx.emb, idx.groups, idx.query[p.id], p.group_id)
+            route[p.id] = (choose(top, r_skill, thr), round(top, 4))
+        del idx
+        print(f"route {args.route}: {sum(1 for s, _ in route.values() if s)}/{len(photos)} photos get {r_skill}", flush=True)
+    texts = {n: skill_text(n) for n in {args.skill, *(s for s, _ in route.values())}}
 
     def one(p: Photo) -> dict:
-        env = Env(reg, max_steps=args.max_steps, max_images=args.max_images, skills=skills)
-        return run_episode(model, env, p, seed=args.seed)
+        name = route[p.id][0] if args.route else args.skill
+        env = Env(reg, max_steps=args.max_steps, max_images=args.max_images, skills=texts[name])
+        res = run_episode(model, env, p, seed=args.seed)
+        if args.route:
+            res["trajectory"]["route"] = {"skill": name or None, "top_sim": route[p.id][1]}
+        return res
 
     t = time.time()
     with ThreadPoolExecutor(args.concurrency) as ex:
@@ -82,6 +103,8 @@ def main() -> None:
     tag = "+".join(names) or "notools"
     if args.skill:
         tag += f"_skill-{args.skill}"
+    if args.route:
+        tag += f"_route-{args.route.replace('@', '-')}"
     if args.temperature:
         tag += f"_t{args.temperature:g}-s{args.seed}"
     elif args.seed:   # greedy runs with a non-default seed must not overwrite the seed-0 run
@@ -96,7 +119,7 @@ def main() -> None:
     write_run(run_id, {
         "dataset": args.dataset, "split": args.split, "subset": args.subset, "model": model.model,
         "config": {"runtime": "vllm 0.33.0 fp16", "tools": names, "placebo": sorted(placebo),
-                   "fault_rate": args.fault_rate, "skill": args.skill or None, "max_steps": args.max_steps, "max_images": args.max_images,
+                   "fault_rate": args.fault_rate, "skill": args.skill or None, "route": args.route or None, "max_steps": args.max_steps, "max_images": args.max_images,
                    "temperature": args.temperature, "seed": args.seed, "max_tokens_per_turn": 400, "action_format": "schema-forced JSON",
                    "concurrency": args.concurrency},
         "notes": f"agent loop (M5). wall {wall:.0f}s for {len(answers)} photos, {n_err} errors",

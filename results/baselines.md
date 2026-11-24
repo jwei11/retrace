@@ -150,6 +150,20 @@ agent beats kNN-10 by +0.096 (real) but loses to the model alone by -0.067 (real
   +0.066 on street view, -0.057 on Flickr.
   Its OSV lower bound (-0.037) already misses the D-050 bar (>= -0.02), so it is not sent to held-out.
 
+## Skill router by retrieval confidence (D-052, held-out)
+
+`--route playbook_v1@0.80`: playbook_v1 when top similarity >= 0.80, else no skill.
+
+| Set | Router | Routed to v1 | Comparison | Diff [95% CI] | Bar | Verdict |
+|---|---|---|---|---|---|---|
+| OSV not-dev300 (1,694) | 0.733 | 97% | vs playbook_v1 | -0.002 [-0.006, +0.002] | >= -0.02 | pass |
+| Im2GPS3k not-dev500 (2,497) | 0.591 | 9% | vs model alone | -0.010 [-0.022, +0.002] | >= -0.02 | fail (by 0.002) |
+
+- Also: OSV +0.060 real vs no skill, -0.015 real vs kNN-10; Im2GPS3k +0.145 real vs kNN-10.
+- Routing keeps v1's street-view gain and removes most of the Flickr loss (v1: -0.067 vs model alone on
+  dev500). The residual -0.010 matches the no-skill agent vs one look (-0.010 on dev500).
+- Cost: 4.0 s/photo Im2GPS3k, 5.8 s/photo OSV (concurrency 4).
+
 ## Burned-in overlay audit (D-051, LEAKAGE.md L-15/L-16)
 
 `scripts/audit_overlays.py`: OCR of the top and bottom bands of every photo, regexes for dates,

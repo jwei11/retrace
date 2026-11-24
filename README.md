@@ -1,5 +1,7 @@
 # Retrace
 
+[![tests](https://github.com/jwei11/retrace/actions/workflows/tests.yml/badge.svg)](https://github.com/jwei11/retrace/actions/workflows/tests.yml)
+
 A tool-using agent that predicts **where** (lat/lon) and **when** (date, time of day) a photo was taken
 from its pixels alone. The model is a small local vision-language model (Qwen3-VL-2B, served with vLLM in
 fp16 on one 8 GB GPU); the project is mostly about the **harness** around it and about measuring what each
@@ -7,6 +9,8 @@ piece of that harness actually contributes.
 
 **Demo:** step-by-step trajectories on 18 street-view photos, three harness configurations side by side:
 https://claude.ai/artifact/VKLBYRnzd9CZes3Qid1yW7 (rebuild with `scripts/export_demo.py`).
+
+![Demo viewer: photo, map with truth, answer and lookalikes, and per-step trace for three harness configurations](docs/demo.png)
 
 ## Harness
 
@@ -67,6 +71,12 @@ What the experiments showed:
 4. **Compute the signal; don't ask a 2B model to.** Neighbor agreement predicts whether kNN is right on
    both datasets, but the model cannot work it out from coordinates. Having `similar` print a computed
    agreement line recovers +0.029 on Flickr and is neutral on street view.
+
+5. **Route skills by retrieval confidence.** The harness picks the skill per photo: `playbook_v1` when
+   the photo resembles the reference index (top similarity >= 0.80), else none. Held-out: street view
+   keeps v1's score (-0.002 vs v1, 1,694 photos); on Flickr the loss vs the model alone shrinks from
+   -0.067 (v1, dev) to -0.010 (2,497 photos), just missing the pre-registered -0.02 bar on its lower
+   bound (-0.022), so it is reported as a fail.
 
 Full tables: `results/baselines.md`. Every non-obvious choice, with alternatives: `DECISIONS.md`.
 

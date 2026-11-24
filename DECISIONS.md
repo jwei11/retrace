@@ -292,3 +292,33 @@ Time metrics are inflated: model alone year-exact 5.1% -> 1.1% clean. Policy for
 change (frozen splits stay frozen); report time metrics on clean photos alongside all photos, and
 exclude these photos from demos. Alternatives: junk-flag them (changes dev300/not-dev300 sizes),
 or crop the bands for every photo (also removes legitimate signs near the edges).
+
+## D-052: Skill router by retrieval confidence (2026-11-23, pre-registered)
+
+What: the harness picks the skill per photo before the episode. Top SigLIP2 similarity to the
+reference index (own capture sequence excluded, as in `similar`) >= 0.80 -> `playbook_v1`; else no
+skill. `run_agent.py --route playbook_v1@0.80`; each photo's route and top similarity are logged.
+Why: v1 is a trade-off (+0.066 OSV dev300, -0.057 vs no skill on Im2GPS3k dev500), and the 2B model
+cannot judge when to trust the neighbors (D-050). So the harness decides with a computed signal.
+0.80 is LOW_SIM from D-050, set on OSV val statistics before these runs; not re-tuned.
+Dev estimate (no new runs; per photo, v1's score where the route is v1, no skill's elsewhere, both
+temperature-0 runs): OSV dev300 0.734 (v1 on 97%), Im2GPS3k dev500 0.590 (v1 on 9%). Adding a
+neighbor-agreement condition changed little and was not adopted (would be tuning on dev).
+No leakage: uses only the photo's embedding vs the train index, the same signal `similar` returns.
+Held-out pass/fail (written before the runs; sets never used for this design):
+  OSV not-dev300 (1,694): router vs playbook_v1, 95% interval lower bound >= -0.02.
+  Im2GPS3k not-dev500 (2,497): router vs model alone, lower bound >= -0.02.
+  Both must hold. Also reported: share routed to v1, vs kNN-10, vs no skill where available.
+Alternatives: gate inside the tool (withhold neighbors when similarity is low; the skill text still
+says "call similar first"); skill text that asks the model to check the flag (v2: partial compliance);
+agreement-count gate (no dev gain over similarity alone).
+D-052 result (2026-11-24): **fail, narrowly**.
+  OSV not-dev300: router 0.733 vs playbook_v1 -0.002 [-0.006, +0.002]: pass (v1 on 1,648/1,694).
+    Also +0.060 real vs no skill; -0.015 real vs kNN-10.
+  Im2GPS3k not-dev500: router 0.591 vs model alone -0.010 [-0.022, +0.002]: lower bound misses
+    -0.02 by 0.002, so the pre-registered criterion fails (v1 on 231/2,497). acc@200 -2.1 points (real).
+Reading: routing does what it was built for: it keeps v1's street-view gain intact and removes most
+of the out-of-domain loss (v1 was -0.067 vs model alone on dev500; the router is -0.010 on held-out).
+The remaining gap is the tool-using agent without a skill vs one look (no skill was -0.010 on dev500
+too), not the skill. Not adopted as passing; the bar is not moved after the fact. Next if pursued:
+route out-of-domain photos to the model's one-look answer instead of the no-skill agent.
